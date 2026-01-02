@@ -56,3 +56,24 @@
 *   **Inventory System**: Actually consuming parts (Spare Cords, Batteries) when repairing.
 *   **Supabase Sync**: Saving your career progress to the cloud.
 *   **More Devices**: Adding the Defribrillator and ESU.
+
+## 🗄️ Database Schema Roadmap
+### Phase 1: User Data (Current)
+*   `profiles`: Links to Auth.Users. Stores vanity info (Display Name) and Game Settings (Difficulty).
+    *   `id` (UUID, PK)
+    *   `username` (Text)
+    *   `difficulty` (Enum: easy, medium, high)
+    *   `xp` (Int)
+
+### Phase 2: Inventory & Economy (Next)
+*   `inventory_items`: Tracks parts owned by the player.
+    *   `player_id` (UUID, FK)
+    *   `item_id` (String, e.g., 'fuse_2a')
+    *   `quantity` (Int)
+
+### Phase 3: Career History
+*   `paramedics_log`: History of all completed tickets.
+    *   `ticket_id` (UUID)
+    *   `device_type` (String)
+    *   `fault_found` (String)
+    *   `outcome` (Success/Fail)
