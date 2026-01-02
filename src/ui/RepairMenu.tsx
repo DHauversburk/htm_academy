@@ -1,33 +1,48 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
+import { useGameStore } from '../game/store';
 
 interface RepairMenuProps {
+    activeOrderId: string;
     onClose: () => void;
-    onComplete: (actionId: string, notes: string) => void;
+    onComplete: (actionId: string) => void;
 }
 
+
 const REPAIR_ACTIONS = [
-    { id: 'replace_cord', label: 'Replace Power Cord', icon: '🔌' },
-    { id: 'replace_battery', label: 'Replace Battery', icon: '🔋' },
-    { id: 'replace_display', label: 'Replace Display Assembly', icon: '🖥️' },
+    { id: 'replace_cord', label: 'Replace Power Cord', icon: '🔌', partId: 'part-cord' },
+    { id: 'replace_battery', label: 'Replace Battery', icon: '🔋', partId: 'part-battery' },
+    { id: 'replace_inlet', label: 'Replace AC Inlet', icon: '🔧', partId: 'part-inlet' },
     { id: 'calibration', label: 'Perform Calibration', icon: '⚖️' },
     { id: 'clean_device', label: 'Clean & Decontaminate', icon: '✨' },
     { id: 'no_fault_found', label: 'No Fault Found (NFF)', icon: '🤷' },
 ];
 
-export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
+export const RepairMenu = ({ activeOrderId, onClose, onComplete }: RepairMenuProps) => {
+    const { inventory, completeWorkOrder } = useGameStore();
+
     const [selectedAction, setSelectedAction] = useState<string | null>(null);
-    const [notes, setNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Create a map for quick part lookup
+    const inventoryMap = useMemo(() => new Map(inventory.map(p => [p.id, p.quantity])), [inventory]);
 
     const handleSubmit = () => {
         if (!selectedAction) return;
         setIsSubmitting(true);
 
+        const action = REPAIR_ACTIONS.find(a => a.id === selectedAction);
+        const partId = action?.partId;
+        const partUsed = partId ? inventory.find(p => p.id === partId) : undefined;
+
+        // Dispatch to the store
+        completeWorkOrder(activeOrderId, partUsed ? [partUsed] : []);
+
+
         // Simulate a momentary delay for "Saving..."
         setTimeout(() => {
-            onComplete(selectedAction, notes);
+            onComplete(selectedAction);
             setIsSubmitting(false);
         }, 800);
     };
@@ -52,33 +67,34 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
                     <div>
                         <label className="block text-xs font-bold uppercase text-slate-500 mb-3 tracking-wider">Corrective Action</label>
                         <div className="grid grid-cols-2 gap-3">
-                            {REPAIR_ACTIONS.map((action) => (
-                                <button
-                                    key={action.id}
-                                    onClick={() => setSelectedAction(action.id)}
-                                    className={clsx(
-                                        "p-3 rounded-xl border text-left transition-all flex items-center space-x-2",
-                                        selectedAction === action.id
-                                            ? "bg-blue-600/20 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]"
-                                            : "bg-slate-700/50 border-slate-700 text-slate-300 hover:bg-slate-700 hover:border-slate-500"
-                                    )}
-                                >
-                                    <span className="text-xl">{action.icon}</span>
-                                    <span className="text-sm font-medium leading-tight">{action.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                            {REPAIR_ACTIONS.map((action) => {
+                                const hasPart = !action.partId || (inventoryMap.get(action.partId) ?? 0) > 0;
+                                const isSelected = selectedAction === action.id;
 
-                    {/* Notes Field */}
-                    <div>
-                        <label className="block text-xs font-bold uppercase text-slate-500 mb-2 tracking-wider">Technician Notes</label>
-                        <textarea
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Describe your findings..."
-                            className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-600 resize-none h-24"
-                        />
+                                return (
+                                    <button
+                                        key={action.id}
+                                        onClick={() => setSelectedAction(action.id)}
+                                        disabled={!hasPart}
+                                        className={clsx(
+                                            "p-3 rounded-xl border text-left transition-all flex items-center space-x-2 relative",
+                                            isSelected
+                                                ? "bg-blue-600/20 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                                                : "bg-slate-700/50 border-slate-700 text-slate-300",
+                                            hasPart
+                                                ? "hover:bg-slate-700 hover:border-slate-500"
+                                                : "opacity-40 cursor-not-allowed"
+                                        )}
+                                    >
+                                        <span className="text-xl">{action.icon}</span>
+                                        <span className="text-sm font-medium leading-tight">{action.label}</span>
+                                        {!hasPart && (
+                                            <span className="absolute -top-2 -right-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">OUT</span>
+                                        )}
+                                    </button>
+                                )
+                            })}
+                        </div>
                     </div>
                 </div>
 

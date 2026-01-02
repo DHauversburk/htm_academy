@@ -10,6 +10,7 @@ import { RepairMenu } from './ui/RepairMenu';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
+import type { WorkOrder } from './game/types';
 
 function App() {
   // Game Reference
@@ -17,7 +18,7 @@ function App() {
   const [isWorkOrderOpen, setIsWorkOrderOpen] = useState(false);
   const [isSetupOpen, setIsSetupOpen] = useState(false);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
-  const [currentWO, setCurrentWO] = useState<any>(null);
+  const [currentWO, setCurrentWO] = useState<WorkOrder | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   // Store
@@ -32,7 +33,7 @@ function App() {
 
   useEffect(() => {
     // Listen for Work Order events from Phaser
-    const handleOpenWO = (data: any) => {
+    const handleOpenWO = (data: WorkOrder) => {
       setCurrentWO(data);
       setIsWorkOrderOpen(true);
       setActiveOrder(data.id);
@@ -73,7 +74,7 @@ function App() {
       setActiveOrder(null);
     };
 
-    const handleStartRepair = (data: any) => {
+    const handleStartRepair = (data: { id: string, device: string, details: WorkOrder }) => {
       // Close UI overlays
       setIsWorkOrderOpen(false);
       setCurrentWO(data.details); // Ensure we have the latest details
@@ -117,7 +118,7 @@ function App() {
     EventBus.emit('ui-closed');
   };
 
-  const handleRepairComplete = (actionId: string, _notes: string) => {
+  const handleRepairComplete = (actionId: string) => {
     setIsRepairMenuOpen(false);
 
     if (!currentWO) return;
@@ -168,8 +169,9 @@ function App() {
       {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && <WorkOrderList />}
 
       {/* Repair Menu */}
-      {isRepairMenuOpen && (
+      {isRepairMenuOpen && currentWO && (
         <RepairMenu
+          activeOrderId={currentWO.id}
           onClose={() => setIsRepairMenuOpen(false)}
           onComplete={handleRepairComplete}
         />

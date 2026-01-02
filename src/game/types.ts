@@ -1,3 +1,10 @@
+export interface Part {
+    id: string;
+    name: string;
+    cost: number;
+    quantity: number;
+}
+
 export type Priority = 'routine' | 'urgent' | 'emergency';
 export type RiskLevel = 'low' | 'medium' | 'high';
 

@@ -5,7 +5,7 @@ import { useGameStore } from '../store';
 export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    private wasd!: any;
+    private wasd!: { [key: string]: Phaser.Input.Keyboard.Key };
     private interactKey!: Phaser.Input.Keyboard.Key;
 
     // Zones
