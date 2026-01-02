@@ -71,7 +71,7 @@ export class StartScreen extends Scene {
 
         // Click Action
         bg.on('pointerdown', () => {
-            EventBus.emit('start-setup');
+            this.scene.start('MainGame');
         });
     }
 }
