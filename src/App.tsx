@@ -15,7 +15,6 @@ function App() {
   // Game Reference
   const phaserRef = useRef<IRefPhaserGame>(null);
   const [isWorkOrderOpen, setIsWorkOrderOpen] = useState(false);
-  const [isSetupOpen, setIsSetupOpen] = useState(false);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
   const [currentWO, setCurrentWO] = useState<any>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
@@ -38,13 +37,7 @@ function App() {
       setActiveOrder(data.id);
     };
 
-    const handleStartSetup = () => {
-      setIsSetupOpen(true);
-    }
-
     const handleStartTutorial = () => {
-      setIsSetupOpen(false);
-
       // Start Orientation (Tutorial Mode)
       if (phaserRef.current?.scene) {
         const game = phaserRef.current.game;
@@ -93,7 +86,6 @@ function App() {
     };
 
     EventBus.on('open-work-order', handleOpenWO);
-    EventBus.on('start-setup', handleStartSetup);
     EventBus.on('start-tutorial', handleStartTutorial);
     EventBus.on('tutorial-complete', handleTutorialComplete);
     EventBus.on('ui-closed', handleUiClosed);
@@ -102,7 +94,6 @@ function App() {
 
     return () => {
       EventBus.removeListener('open-work-order', handleOpenWO);
-      EventBus.removeListener('start-setup', handleStartSetup);
       EventBus.removeListener('start-tutorial', handleStartTutorial);
       EventBus.removeListener('tutorial-complete', handleTutorialComplete);
       EventBus.removeListener('ui-closed', handleUiClosed);
@@ -162,7 +153,7 @@ function App() {
       </div>
 
       {/* Profile Setup Wizard */}
-      {isSetupOpen && <ProfileSetup />}
+      {!isSetupComplete && <ProfileSetup />}
 
       {/* Work Order Queue (Only show active game) */}
       {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && <WorkOrderList />}
