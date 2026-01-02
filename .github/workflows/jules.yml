@@ -1,0 +1,34 @@
+name: Jules Assistant
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  jules_workflow:
+    runs-on: ubuntu-latest
+    name: Jules Workflow
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Jules Invoke
+        uses: BeksOmega/jules-action@v1.0.0
+        with:
+          # Assuming it might need the key. If not documented, the user can adjust.
+          # But usually 'uses' is enough if it defaults to environment variables.
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+
+      - name: Jules PR Comment
+        uses: BeksOmega/jules-publish@v1.0.0
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send Feedback to Jules
+        uses: BeksOmega/jules-comms@v1.0.0
+        if: always()
