@@ -6,7 +6,7 @@ import clsx from 'clsx';
 
 export const ProfileSetup = () => {
     const [step, setStep] = useState(0); // 0 = Intro, 1 = AuthChoice, 2 = Avatar, 3 = Name, 4 = Difficulty
-    const { playerName, setPlayerName, difficulty, setDifficulty, completeSetup, setAuthMode, avatarColor, setAvatarColor } = useGameStore();
+    const { playerName, setPlayerName, difficulty, setDifficulty, completeSetup, setAuthMode, avatarColor, setAvatarColor, loadProfile } = useGameStore();
 
     const handleComplete = () => {
         completeSetup();
@@ -79,6 +79,7 @@ export const ProfileSetup = () => {
                         <div
                             onClick={() => {
                                 setAuthMode('authenticated');
+                                loadProfile();
                                 setStep(2);
                             }}
                             className="bg-blue-900/20 border-2 border-blue-800 hover:border-blue-500 p-6 rounded-xl cursor-pointer group transition-all relative overflow-hidden"
