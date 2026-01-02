@@ -52,10 +52,25 @@
 
 ---
 
-## 🔮 Next Steps for v2
-*   **Inventory System**: Actually consuming parts (Spare Cords, Batteries) when repairing.
-*   **Supabase Sync**: Saving your career progress to the cloud.
-*   **More Devices**: Adding the Defribrillator and ESU.
+## � Development Roadmap (Aligned with Jira)
+
+### Sprint 1: Core Gameplay & Economy (Current Focus)
+*   **Status**: 90% Complete
+*   ✅ **Work Order System**: Functional list and details view.
+*   ✅ **Repair Mechanics**: Step-by-step repair logic (Repair Scene).
+*   ✅ **Cloud Save**: Supabase Profiles integration.
+*   ✅ **Budget System**: 
+    *   Display remaining monthly budget.
+    *   Store `budget` in Supabase profiles (Default: $1000).
+    *   Inventory Items structure defined (but not yet purchasable UI).
+
+### Sprint 2: The "Interruption Engine" (Next Up)
+*   **Goal**: Simulate the social/admin pressures of a BMET.
+*   **Features**:
+    *   **Phone Calls**: Random calls from Customers/Vendors.
+    *   **Emails**: Admin requests, budget approvals/denials.
+    *   **Dynamic Triggers**: Events triggered by low budget, high error rate, or random timer.
+    *   **ScriptableObject Database**: Architecture for creating content (Dialogue, Options).
 
 ## 🗄️ Database Schema Roadmap
 ### Phase 1: User Data (Current)

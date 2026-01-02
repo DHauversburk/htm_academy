@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import type { WorkOrder } from '../game/types';
 
 export const WorkOrderList = () => {
-    const { workOrders, activeOrderId } = useGameStore();
+    const { workOrders, activeOrderId, budget } = useGameStore();
 
     const handleSelectOrder = (order: WorkOrder) => {
         // Emit event to close the list UI and switch Phaser scene
@@ -18,6 +18,17 @@ export const WorkOrderList = () => {
 
     return (
         <div className="absolute top-16 right-4 w-80 max-h-[80vh] overflow-y-auto z-10 space-y-3 pointer-events-auto">
+            {/* Budget Header */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+                className="bg-slate-900/90 border border-slate-700 p-3 rounded-xl mb-4 flex justify-between items-center shadow-lg backdrop-blur-sm"
+            >
+                <span className="text-slate-400 text-sm font-bold uppercase tracking-wider">Dept Budget</span>
+                <span className={clsx("text-lg font-mono font-bold", budget < 500 ? "text-red-400" : "text-green-400")}>
+                    ${budget.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+            </motion.div>
+
             {workOrders.map((order) => (
                 <motion.div
                     key={order.id}

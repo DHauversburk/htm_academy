@@ -1,12 +1,21 @@
 export type Priority = 'routine' | 'urgent' | 'emergency';
 export type RiskLevel = 'low' | 'medium' | 'high';
 
+export interface InventoryItem {
+    id: string; // e.g., 'fuse_5a'
+    name: string;
+    description: string;
+    cost: number;
+    quantity: number;
+}
+
 export interface Defect {
     id: string;
     name: string;
     description: string;
     isSafetyHazard: boolean;
     fixAction: string; // e.g., "replace_power_cord"
+    requiredPartId?: string; // Link to InventoryItem.id
 }
 
 export interface Device {
