@@ -86,7 +86,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // Cloud Sync Actions
     saveProfile: async () => {
-        const { playerName, difficulty, avatarColor, budget } = get();
+        const { playerName, difficulty, budget } = get();
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
