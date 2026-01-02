@@ -17,7 +17,7 @@ export class Bench extends Scene {
         super('BenchScene');
     }
 
-    init(data: any) {
+    init(data: { mode?: 'tutorial' | 'repair' }) {
         // data.mode can be 'tutorial' or 'repair'
         this.isTutorial = data.mode === 'tutorial';
     }
@@ -174,12 +174,12 @@ export class Bench extends Scene {
 
         probe.setData('color', colorId);
 
-        probe.on('drag', (_pointer: any, dragX: number, dragY: number) => {
+        probe.on('drag', (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
             probe.x = dragX;
             probe.y = dragY;
         });
 
-        probe.on('drop', (_pointer: any, target: Phaser.GameObjects.Zone) => {
+        probe.on('drop', (_pointer: Phaser.Input.Pointer, target: Phaser.GameObjects.Zone) => {
             // Snap to target
             probe.x = target.x;
             probe.y = target.y;
