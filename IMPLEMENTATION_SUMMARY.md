@@ -1,0 +1,58 @@
+# HTM Academy - Implementation Status Report
+
+## 🚀 Core Systems Completed
+
+### 1. **Onboarding & Profile System**
+*   **Feature**: Multi-step wizard for setting up a technician profile.
+*   **Data**: Stores Player Name, Difficulty Level (Intern/Tech/Manager), and Auth Mode (Guest/Cloud).
+*   **Logic**: Adjusts gameplay variables based on selected Difficulty.
+
+### 2. **Procedural Game Director**
+*   **Feature**: The "Brain" of the game. Generates unique shifts every time you play.
+*   **Logic**: 
+    *   *Intern (Easy)*: 3 Tickets, Routine Priority, Accurate Descriptions.
+    *   *Manager (Hard)*: 8 Tickets, Emergency Priority, Obscure/Wrong Descriptions (The Nurse lies!).
+
+### 3. **Interactive Repair Bench**
+*   **Feature**: A dedicated scene for device inspection.
+*   **Device**: "Atlantis Space" Infusion Pump.
+*   **Tool**: "Flute 117" Multimeter with physics-based drag-and-drop.
+*   **Simulation**: Real-time voltage calculation based on probe placement (Live/Neutral/Ground).
+
+### 4. **Repair & Validation System**
+*   **Feature**: A "Service Report" UI to close tickets.
+*   **Logic**: Validates your chosen solution against the *actual* hidden defect ID.
+*   **Feedback**: Success/Error toasts; successful repairs clear the ticket and return you to the workshop.
+
+---
+
+## 🎮 How to Play the "Day 1" Loop
+
+1.  **Launch**: Open the app. Click **"START SHIFT"**.
+2.  **Onboarding**: 
+    *   Select **"Guest Badge"**.
+    *   Enter Name (e.g., "Tech 1").
+    *   Select **"Intern (Easy)"**.
+3.  **The Queue**:
+    *   After the "Director" runs, a list of Work Orders appears on the right.
+    *   Click the ticket mentioning **"Check AC Code"** or **"Device alarms"**.
+4.  **The Diagnosis**:
+    *   You are now at the Bench.
+    *   Drag the **Red Probe** to the *Live* hotspot (Right side of inlet).
+    *   Drag the **Black Probe** to the *Ground* hotspot (Chassis lug).
+    *   Observe the reading (~119.8V). 
+    *   *Note: In this scenario, the visual clue is that the cord is physically frayed (implied).*
+5.  **The Fix**:
+    *   Click **"🛠️ Perform Repairs"** (Bottom Right).
+    *   Select **"Replace Power Cord"**.
+    *   Click **"Complete Ticket"**.
+6.  **Victory**:
+    *   You'll see a Green Success Toast.
+    *   You return to the main workshop to take the next ticket.
+
+---
+
+## 🔮 Next Steps for v2
+*   **Inventory System**: Actually consuming parts (Spare Cords, Batteries) when repairing.
+*   **Supabase Sync**: Saving your career progress to the cloud.
+*   **More Devices**: Adding the Defribrillator and ESU.
