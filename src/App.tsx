@@ -60,6 +60,8 @@ function App() {
     };
 
     const handleTutorialComplete = async () => {
+      setIsSetupOpen(false);
+
       // 1. Generate the Shift Context (AI Director)
       // Show loading toast?
       setToast({ message: "AIDirector: Generating Hospital Layout...", type: 'success' }); // Info type hacked as success for now
