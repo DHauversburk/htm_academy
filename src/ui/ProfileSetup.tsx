@@ -7,6 +7,7 @@ import clsx from 'clsx';
 export const ProfileSetup = () => {
     const [step, setStep] = useState(0); // 0 = Intro, 1 = AuthChoice, 2 = Avatar, 3 = Name, 4 = Difficulty
     const { playerName, setPlayerName, difficulty, setDifficulty, completeSetup, setAuthMode, avatarColor, setAvatarColor } = useGameStore();
+    const [localPlayerName, setLocalPlayerName] = useState(playerName);
 
     const handleComplete = () => {
         completeSetup();
@@ -153,15 +154,18 @@ export const ProfileSetup = () => {
                         <label className="block text-blue-400 text-sm font-bold mb-2 uppercase tracking-wider">Technician Name</label>
                         <input
                             type="text"
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
+                            value={localPlayerName}
+                            onChange={(e) => setLocalPlayerName(e.target.value)}
                             placeholder="e.g. TECH-1138 or John Doe"
                             className="w-full bg-slate-800 border-2 border-slate-700 focus:border-blue-500 outline-none text-white text-xl p-4 rounded-xl transition-all"
                             autoFocus
                         />
                         <button
-                            disabled={!playerName.trim()}
-                            onClick={() => setStep(4)}
+                            disabled={!localPlayerName.trim()}
+                            onClick={() => {
+                                setPlayerName(localPlayerName);
+                                setStep(4);
+                            }}
                             className="w-full mt-6 bg-slate-700 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-medium transition-all"
                         >
                             Confirm Identity
