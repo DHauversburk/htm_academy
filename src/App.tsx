@@ -192,9 +192,12 @@ function App() {
     <div id="app" className="relative w-full h-full overflow-hidden">
       <PhaserGame ref={phaserRef} />
 
-      <div className="absolute top-4 left-4 z-10 pointer-events-none">
-        <h1 className="text-white font-bold text-xl drop-shadow-md">HTM Academy</h1>
-        <p className="text-slate-300 text-sm drop-shadow-md">Biomed Simulator</p>
+      <div className="absolute top-4 left-4 z-10 pointer-events-none flex items-center gap-3">
+        <img src="/logo.svg" alt="HTM Academy Logo" className="w-10 h-10 drop-shadow-md" />
+        <div>
+          <h1 className="text-white font-extrabold text-xl tracking-wide drop-shadow-md leading-none">HTM ACADEMY</h1>
+          <p className="text-slate-300 text-xs font-mono tracking-wider drop-shadow-md mt-1">BIOMED SIMULATOR</p>
+        </div>
       </div>
 
       {/* Profile Setup Wizard */}
