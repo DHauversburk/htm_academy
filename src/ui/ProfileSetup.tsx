@@ -55,7 +55,8 @@ export const ProfileSetup = () => {
                 setIsLoading(false);
             }
             // On success, Supabase redirects and handles the rest
-        } catch (err) {
+            // @ts-expect-error unused variable
+        } catch (_err) {
             setError('Social login unavailable. Try email instead.');
             setIsLoading(false);
         }
@@ -98,15 +99,16 @@ export const ProfileSetup = () => {
 
                 if (signUpError) {
                     setError('Authentication failed. Check your credentials.');
-                    setIsLoading(false);
                     return;
                 }
             }
 
             setAuthMode('authenticated');
             await proceedToGame();
-        } catch (err) {
+            // @ts-expect-error unused variable
+        } catch (_err) {
             setError('Connection error. Try again.');
+        } finally {
             setIsLoading(false);
         }
     };
@@ -130,7 +132,8 @@ export const ProfileSetup = () => {
                 setError(null);
                 alert('Password reset link sent! Check your email.');
             }
-        } catch (err) {
+            // @ts-expect-error unused variable
+        } catch (_err) {
             setError('Unable to send reset email');
         }
         setIsLoading(false);
@@ -323,10 +326,10 @@ export const ProfileSetup = () => {
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">Difficulty</label>
                                         <div className="grid grid-cols-3 gap-2">
-                                            {['easy', 'medium', 'hard'].map((diff) => (
+                                            {(['easy', 'medium', 'hard'] as const).map((diff) => (
                                                 <button
                                                     key={diff}
-                                                    onClick={() => setDifficulty(diff as any)}
+                                                    onClick={() => setDifficulty(diff)}
                                                     className={`px-3 py-2 rounded text-xs font-semibold transition ${difficulty === diff
                                                             ? 'bg-blue-600 text-white'
                                                             : 'bg-slate-700 text-slate-300'
