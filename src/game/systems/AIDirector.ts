@@ -1,27 +1,32 @@
-import { GeminiService } from '../../lib/gemini';
+import { GeminiService, getFallbackShift } from '../../lib/gemini';
 import type { DailyShift } from '../types';
 
 export class AIDirector {
-    private static currentShift: DailyShift | null = null;
-
     /**
      * Called when the player starts a new shift (Day loop).
-     * Returns a promise that resolves with the shift configuration.
+     * Generates context from the Gemini service, but provides a
+     * robust fallback if the API call fails for any reason.
+     * This ensures the game can always start, even offline.
      */
     static async generateDailyContext(difficulty: string): Promise<DailyShift> {
         console.log("AIDirector: Generating Daily Context...");
 
-        // 1. Generate Context from Gemini
-        const shiftData = await GeminiService.generateDailyShift(difficulty);
-        console.log("AIDirector: Context Generated", shiftData);
+        try {
+            const shiftData = await GeminiService.generateDailyShift(difficulty);
+            console.log("AIDirector: Context Generated", shiftData);
 
-        if (!shiftData) throw new Error("Failed to generate shift data");
+            // The service returns a fallback on error, but we can double-check
+            if (!shiftData) {
+                console.warn("AIDirector: Gemini service returned null, using fallback.");
+                return getFallbackShift();
+            }
 
-        this.currentShift = shiftData;
-        return shiftData;
-    }
+            return shiftData;
 
-    static getCurrentShift() {
-        return this.currentShift;
+        } catch (error) {
+            console.error("AIDirector: Critical failure in generateDailyContext", error);
+            // Return a safe fallback if the promise itself rejects
+            return getFallbackShift();
+        }
     }
 }
