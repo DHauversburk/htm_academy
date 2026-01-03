@@ -26,8 +26,8 @@ export class GridMapManager {
     }
 
     createProceduralMap(config?: { width: number, height: number, rooms: any[] }) {
-        const width = config?.width || 128;
-        const height = config?.height || 128;
+        const width = config?.width && config.width > 20 ? config.width : 50;
+        const height = config?.height && config.height > 20 ? config.height : 40;
 
         this.generatePlaceholderTextures();
 
