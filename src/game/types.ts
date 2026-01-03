@@ -49,6 +49,7 @@ export interface DialogOption {
     label: string;
     action: 'accept' | 'defer' | 'refuse';
     consequence?: string; // Description of what happens
+    budgetImpact?: number;
 }
 
 export interface InterruptionEvent {

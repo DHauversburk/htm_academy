@@ -30,13 +30,13 @@ export class InterruptionManager {
             },
             {
                 type: 'phone',
-                title: 'Vendor Call',
-                npcName: 'Sales Rep (Dave)',
-                description: 'Hey! I got those replacement batteries you ordered. Wanna grab lunch?',
-                urgency: 'low',
+                title: 'Supply Chain Issue',
+                npcName: 'Vendor (Dave)',
+                description: 'We have those Li-Ion batteries available now, but only if you pay for expedited shipping.',
+                urgency: 'medium',
                 options: [
-                    { label: 'Sure!', action: 'defer', consequence: 'Lunch Break schedule (-1 Hour)' },
-                    { label: 'Busy right now', action: 'refuse', consequence: 'No effect' }
+                    { label: 'Buy Updates ($200)', action: 'accept', consequence: '-$200 Budget, +5 Batteries', budgetImpact: -200 },
+                    { label: 'Wait for Ground', action: 'defer', consequence: 'No cost, arrival next week' }
                 ]
             }
         ];

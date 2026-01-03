@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const InterruptionDialog = () => {
     const [event, setEvent] = useState<InterruptionEvent | null>(null);
-    const { addWorkOrder } = useGameStore();
+    const { addWorkOrder, updateBudget } = useGameStore();
 
     useEffect(() => {
         const handleEvent = (incomingEvent: InterruptionEvent) => {
@@ -24,6 +24,17 @@ export const InterruptionDialog = () => {
         if (!event) return;
 
         console.log(`Selected option: ${option.label} (${option.action})`);
+
+        // Apply Budget Impact
+        if (option.budgetImpact) {
+            updateBudget(option.budgetImpact);
+            const type = option.budgetImpact > 0 ? 'success' : 'error';
+            // Show toast for money
+            EventBus.emit('show-toast', {
+                message: `Budget updated: ${option.budgetImpact > 0 ? '+' : ''}$${option.budgetImpact}`,
+                type
+            });
+        }
 
         if (option.action === 'accept') {
             if (event.associatedTicket) {
