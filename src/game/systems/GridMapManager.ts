@@ -39,7 +39,7 @@ export class GridMapManager {
         });
 
         // addTilesetImage(tilesetName, key, tileWidth, tileHeight, tileMargin, tileSpacing)
-        const tileset = this.map.addTilesetImage('tiles', 'tiles', this.TILE_SIZE, this.TILE_SIZE, 1, 2);
+        const tileset = this.map.addTilesetImage('tiles', 'tiles', this.TILE_SIZE, this.TILE_SIZE, 0, 2);
         if (!tileset) throw new Error("Failed to create tileset");
         this.tileset = tileset;
 
