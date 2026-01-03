@@ -17,6 +17,7 @@ export class GridMapManager {
     private layer!: Phaser.Tilemaps.TilemapLayer;
 
     private rooms: Room[] = [];
+    private grid: number[][] = [];
 
     public readonly TILE_SIZE = 32;
 
@@ -43,6 +44,16 @@ export class GridMapManager {
         // Initialize with Walls
         this.layer.fill(1); // 1 = Wall
 
+        // Initialize Grid Data (Rows = y, Cols = x)
+        this.grid = [];
+        for (let y = 0; y < height; y++) {
+            const row = [];
+            for (let x = 0; x < width; x++) {
+                row.push(1); // Wall
+            }
+            this.grid.push(row);
+        }
+
         this.generateHospitalLayout(width, height);
 
         this.map.setCollision(1);
@@ -52,10 +63,10 @@ export class GridMapManager {
         this.rooms = [];
 
         // 1. Fixed: The Biomed Workshop (Top Left for now)
-        const workshop = this.createRoom('Workshop', 2, 2, 10, 8);
+        this.createRoom('Workshop', 2, 2, 10, 8);
 
         // 2. Fixed: Lobby / Main Entrance (Center Bottom)
-        const lobby = this.createRoom('Lobby', Math.floor(mapWidth / 2) - 6, mapHeight - 15, 12, 10);
+        this.createRoom('Lobby', Math.floor(mapWidth / 2) - 6, mapHeight - 15, 12, 10);
 
         // 3. Departments (ICU, Cafeteria)
         this.createRoom('ICU', 25, 5, 12, 12);
@@ -68,7 +79,6 @@ export class GridMapManager {
             const x = Math.floor(Math.random() * (mapWidth - w - 4)) + 2;
             const y = Math.floor(Math.random() * (mapHeight - h - 4)) + 2;
 
-            // Rename to differentiate
             this.createRoom(`Room_${i}`, x, y, w, h);
         }
 
@@ -85,6 +95,7 @@ export class GridMapManager {
                 // Ensure bounds
                 if (x + dx < this.map.width && y + dy < this.map.height) {
                     this.layer.putTileAt(0, x + dx, y + dy);
+                    if (this.grid[y + dy]) this.grid[y + dy][x + dx] = 0;
                 }
             }
         }
@@ -105,17 +116,24 @@ export class GridMapManager {
         const targetX = roomB.centerX;
         const targetY = roomB.centerY;
 
+        const dig = (gx: number, gy: number) => {
+            if (gx >= 0 && gx < this.map.width && gy >= 0 && gy < this.map.height) {
+                this.layer.putTileAt(0, gx, gy);
+                if (this.grid[gy]) this.grid[gy][gx] = 0;
+            }
+        };
+
         // Move Horizontally
         while (x !== targetX) {
-            this.layer.putTileAt(0, x, y);
-            this.layer.putTileAt(0, x, y + 1); // Wide corridor
+            dig(x, y);
+            dig(x, y + 1); // Wide corridor
             x += (x < targetX) ? 1 : -1;
         }
 
         // Move Vertically
         while (y !== targetY) {
-            this.layer.putTileAt(0, x, y);
-            this.layer.putTileAt(0, x + 1, y); // Wide corridor
+            dig(x, y);
+            dig(x + 1, y); // Wide corridor
             y += (y < targetY) ? 1 : -1;
         }
     }
@@ -125,12 +143,12 @@ export class GridMapManager {
 
         const graphics = this.scene.make.graphics({ x: 0, y: 0 });
 
-        // Tile 0: Floor (Light Gray)
-        graphics.fillStyle(0xf1f5f9);
+        // Tile 0: Floor (Light Gray/Blue)
+        graphics.fillStyle(0xf1f5f9); // Slate-100
         graphics.fillRect(0, 0, 32, 32);
 
         // Tile 1: Wall (Dark Blue)
-        graphics.fillStyle(0x334155);
+        graphics.fillStyle(0x334155); // Slate-700
         graphics.fillRect(34, 0, 32, 32);
 
         graphics.generateTexture('tiles', 68, 32);
@@ -142,6 +160,10 @@ export class GridMapManager {
 
     public getRoom(id: string): Room | undefined {
         return this.rooms.find(r => r.id === id);
+    }
+
+    public getCollisionGrid() {
+        return this.grid;
     }
 
     public getSpawnPoint(): { x: number, y: number } {
@@ -160,18 +182,26 @@ export class GridMapManager {
             const y = Math.floor(Math.random() * this.map.height);
 
             const tile = this.layer.getTileAt(x, y);
+            // Tile index 0 is Floor
             if (tile && tile.index === 0) {
                 return this.tileToWorld(x, y);
             }
             attempts++;
         }
-        return { x: 0, y: 0 };
+        return { x: 0, y: 0 }; // Fallback
     }
 
     public tileToWorld(tileX: number, tileY: number) {
         return {
             x: tileX * this.TILE_SIZE + this.TILE_SIZE / 2,
             y: tileY * this.TILE_SIZE + this.TILE_SIZE / 2
+        };
+    }
+
+    public worldToTile(worldX: number, worldY: number) {
+        return {
+            x: Math.floor(worldX / this.TILE_SIZE),
+            y: Math.floor(worldY / this.TILE_SIZE)
         };
     }
 }

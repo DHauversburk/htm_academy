@@ -3,6 +3,7 @@ import { EventBus } from '../EventBus';
 import { useGameStore } from '../store';
 import { GridMapManager } from '../systems/GridMapManager';
 import { InterruptionManager } from '../systems/InterruptionManager';
+import { PathfindingSystem } from '../systems/PathfindingSystem';
 import type { InterruptionEvent } from '../types';
 
 export class MainGame extends Scene {
@@ -12,6 +13,7 @@ export class MainGame extends Scene {
     private joystickInput = { x: 0, y: 0 };
 
     private mapManager!: GridMapManager;
+    private pathfinding!: PathfindingSystem;
 
     // Interactions
     private zones: { x: number, y: number, name: string, callback: () => void }[] = [];
@@ -39,7 +41,11 @@ export class MainGame extends Scene {
         this.mapManager.createProceduralMap(128, 128);
         const layer = this.mapManager.getLayer();
 
-        // 2. Player Setup
+        // 2. Pathfinding Init
+        this.pathfinding = new PathfindingSystem();
+        this.pathfinding.setGrid(this.mapManager.getCollisionGrid());
+
+        // 3. Player Setup
         const spawn = this.mapManager.getSpawnPoint();
         this.player = this.physics.add.sprite(spawn.x, spawn.y, 'sprite_technician', 0);
         this.player.setScale(1.5); // Slightly smaller for top-down
@@ -54,13 +60,13 @@ export class MainGame extends Scene {
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
 
-        // 3. Camera
+        // 4. Camera
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         const targetViewWidth = 16 * 32;
         const zoom = this.scale.width / targetViewWidth;
         this.cameras.main.setZoom(Math.min(Math.max(zoom, 0.5), 2));
 
-        // 4. Input
+        // 5. Input
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
             this.wasd = this.input.keyboard.addKeys('W,A,S,D');
@@ -80,10 +86,10 @@ export class MainGame extends Scene {
             EventBus.removeListener('joystick-move');
         });
 
-        // 5. Interactions
+        // 6. Interactions
         this.createInteractionZones();
 
-        // 6. Interruptions
+        // 7. Interruptions
         this.listenForInterruptions();
 
         EventBus.emit('scene-ready', this);
@@ -95,6 +101,9 @@ export class MainGame extends Scene {
 
         // Zone Checking
         this.checkZones();
+
+        // NPC Movement
+        this.handleNPCMovement();
     }
 
     handlePlayerMovement() {
@@ -188,13 +197,7 @@ export class MainGame extends Scene {
             pos = this.mapManager.getRandomFloorPosition();
         }
 
-        // Visual Marker
-        this.add.circle(pos.x, pos.y, 16, color, 0.5);
-        this.add.text(pos.x, pos.y - 24, name, {
-            fontSize: '12px', color: '#ffffff', backgroundColor: '#00000080'
-        }).setOrigin(0.5);
-
-        this.zones.push({ x: pos.x, y: pos.y, name, callback });
+        this.addZoneAt(pos.x, pos.y, name, color, callback);
     }
 
     checkZones() {
@@ -245,16 +248,83 @@ export class MainGame extends Scene {
         });
     }
 
-    spawnNPC(event: InterruptionEvent) {
-        // Spawn randomly
-        const pos = this.mapManager.getRandomFloorPosition();
+    async spawnNPC(event: InterruptionEvent) {
+        // Spawn randomly... but realistically from an entrance?
+        // Let's spawn them at the "Lobby" or "Entrance" room if possible.
+        let spawnPos = { x: 0, y: 0 };
+        const lobby = this.mapManager.getRoom('Lobby');
+        if (lobby) {
+            spawnPos = this.mapManager.tileToWorld(lobby.centerX, lobby.centerY);
+        } else {
+            spawnPos = this.mapManager.getRandomFloorPosition();
+        }
 
-        const npc = this.physics.add.sprite(pos.x, pos.y, 'sprite_technician', 0);
+        const npc = this.physics.add.sprite(spawnPos.x, spawnPos.y, 'sprite_technician', 0);
         npc.setTint(0x4ade80); // Nurse Green
         npc.setScale(1.5);
         npc.setBodySize(24, 24);
-
         npc.setData('event', event);
         this.npcs.push(npc);
+
+        // Pathfind to Player
+        const start = this.mapManager.worldToTile(spawnPos.x, spawnPos.y);
+        const end = this.mapManager.worldToTile(this.player.x, this.player.y);
+
+        console.log(`Finding path for NPC from (${start.x},${start.y}) to player (${end.x},${end.y})`);
+
+        try {
+            const path = await this.pathfinding.findPath(start.x, start.y, end.x, end.y);
+            if (path && path.length > 0) {
+                console.log("Path found!", path.length);
+                path.shift(); // Remove current pos
+                npc.setData('path', path);
+            } else {
+                console.warn("No path found for NPC");
+            }
+        } catch (err) {
+            console.error("Pathfinding error", err);
+        }
+    }
+
+    handleNPCMovement() {
+        this.npcs.forEach(npc => {
+            if (npc.getData('triggered')) {
+                npc.setVelocity(0);
+                return;
+            }
+
+            const path = npc.getData('path');
+            if (path && path.length > 0) {
+                const nextTile = path[0];
+                const nextWorld = this.mapManager.tileToWorld(nextTile.x, nextTile.y);
+
+                // Move towards next tile
+                this.physics.moveTo(npc, nextWorld.x, nextWorld.y, 130); // Speed 130
+
+                // Distance check
+                if (Phaser.Math.Distance.Between(npc.x, npc.y, nextWorld.x, nextWorld.y) < 10) {
+                    path.shift(); // Reached tile
+                }
+            } else {
+                npc.setVelocity(0);
+
+                // If close to player, trigger dialogue
+                if (Phaser.Math.Distance.Between(npc.x, npc.y, this.player.x, this.player.y) < 60) {
+                    const event = npc.getData('event');
+                    if (event && !npc.getData('triggered')) {
+                        npc.setData('triggered', true);
+                        EventBus.emit('interruption-triggered', event);
+                        // Make NPC face player
+                        npc.setFlipX(this.player.x < npc.x);
+
+                        // Despawn after a while?
+                        this.time.delayedCall(10000, () => {
+                            npc.destroy();
+                            this.npcs = this.npcs.filter(n => n !== npc);
+                        });
+                    }
+                }
+            }
+        });
     }
 }
