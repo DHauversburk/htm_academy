@@ -3,12 +3,23 @@ export type RiskLevel = 'low' | 'medium' | 'high';
 
 export type ContainerType = 'hands' | 'fanny_pack' | 'backpack' | 'cart' | 'auto_cart';
 
+export interface Skill {
+    id: string;
+    name: string;
+    description: string;
+    costXP: number;
+    prerequisites: string[]; // List of skill IDs
+    type: 'efficiency' | 'access' | 'speed' | 'quality';
+}
+
 export interface PlayerStats {
     level: number;
     strength: number; // Reduces movement penalty from weight
     speed: number; // Base movement speed
     currentXP: number;
     maxXP: number;
+    xp: number; // Total accumulated XP (for spending)
+    unlockedSkills: string[];
 }
 
 export interface InventoryItem {

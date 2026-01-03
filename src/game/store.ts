@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { WorkOrder } from './types';
 import { supabase } from '../lib/supabase';
+import { SKILL_TREE } from './data/skills';
 
 // Basic catalogue for v1
 export const PARTS_CATALOGUE: Record<string, { name: string, cost: number, desc: string, weight: number }> = {
@@ -26,6 +27,9 @@ interface GameState {
         strength: number;
         speed: number;
         xp: number;
+        unlockedSkills: string[];
+        currentXP: number;
+        maxXP: number;
     };
     container: 'hands' | 'fanny_pack' | 'backpack' | 'cart' | 'auto_cart';
 
@@ -54,6 +58,7 @@ interface GameState {
     loadProfile: () => Promise<void>;
     syncInventory: () => Promise<void>;
     logTicketCompletion: (ticket: WorkOrder, fault: string, xp: number) => Promise<void>;
+    unlockSkill: (skillId: string) => boolean;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -71,7 +76,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         level: 1,
         strength: 5, // Base strength
         speed: 200, // Base pixels per second
-        xp: 0
+        xp: 0,
+        unlockedSkills: [],
+        currentXP: 0,
+        maxXP: 1000
     },
     container: 'hands',
 
@@ -264,5 +272,30 @@ export const useGameStore = create<GameState>((set, get) => ({
         } catch (err) {
             console.error("Log Exception:", err);
         }
+    },
+    unlockSkill: (skillId) => {
+        const { stats } = get();
+        const skill = SKILL_TREE[skillId];
+
+        if (!skill) return false;
+        if (stats.unlockedSkills.includes(skillId)) return true; // Already unlocked
+        if (stats.xp < skill.costXP) return false; // Not enough XP
+
+        // Check prerequisites
+        const hasPrereqs = skill.prerequisites.every(p => stats.unlockedSkills.includes(p));
+        if (!hasPrereqs) return false;
+
+        set({
+            stats: {
+                ...stats,
+                xp: stats.xp - skill.costXP,
+                unlockedSkills: [...stats.unlockedSkills, skillId]
+            }
+        });
+
+        // TODO: Sync this unlock to server (e.g., in profile metadata or new table)
+        get().saveProfile();
+
+        return true;
     }
 }));
