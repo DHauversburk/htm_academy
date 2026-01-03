@@ -38,6 +38,15 @@ interface GameState {
 
     saveProfile: () => Promise<void>;
     loadProfile: () => Promise<void>;
+
+    // Interruption State
+    interruption: {
+        type: string;
+        title: string;
+        message: string;
+        options: { text: string; action: string }[];
+    } | null;
+    setInterruption: (interruption: GameState['interruption']) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -50,8 +59,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     activeOrderId: null,
     budget: 1000,
     inventory: {},
+    interruption: null,
 
     // Actions
+    setInterruption: (interruption) => set({ interruption }),
     setPlayerName: (name) => set({ playerName: name }),
     setDifficulty: (level) => set({ difficulty: level }),
     setAuthMode: (mode) => set({ authMode: mode }),
