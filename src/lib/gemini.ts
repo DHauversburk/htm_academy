@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { DailyShift } from "../game/types";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -23,13 +24,48 @@ export interface GeneratedInterruption {
     }[];
 }
 
+/**
+ * Provides a default, hard-coded shift object to ensure the game can always
+ * start, even if the AI service is unavailable or the API key is missing.
+ */
+export const getFallbackShift = () => {
+    return {
+        scenarioTitle: "Routine Maintenance",
+        scenarioDescription: "Just another Tuesday. Keep the lights on.",
+        npcMood: "Calm",
+        mapConfig: {
+            width: 128,
+            height: 128,
+            flavor: "Standard",
+            rooms: [
+                { id: "Workshop", type: "workshop", w: 10, h: 8, x: 2, y: 2 },
+                { id: "Lobby", type: "lobby", w: 12, h: 10, x: 58, y: 115 },
+                { id: "ICU", type: "ward", w: 12, h: 12 },
+                { id: "Cafeteria", type: "storage", w: 10, h: 10 },
+                { id: "Office_A", type: "office", w: 6, h: 6 },
+                { id: "Ward_B", type: "ward", w: 8, h: 8 }
+            ]
+        }
+    };
+};
+
+/**
+ * A specific fallback for when the user is known to be offline.
+ */
+export const getOfflineShift = () => {
+    const shift = getFallbackShift();
+    shift.scenarioTitle = "Offline Protocol";
+    shift.scenarioDescription = "Network connection unavailable. Running local simulation.";
+    return shift;
+};
+
 export const GeminiService = {
     isEnabled,
 
-    async generateDailyShift(difficulty: string): Promise<any | null> {
+    async generateDailyShift(difficulty: string): Promise<DailyShift | null> {
         if (!genAI) {
             // Fallback for when AI is off
-            return this.getFallbackShift();
+            return getFallbackShift();
         }
 
         try {
@@ -74,7 +110,7 @@ export const GeminiService = {
 
             // Ensure essential rooms exist if array is empty
             if (!parsed.mapConfig.rooms || !Array.isArray(parsed.mapConfig.rooms) || parsed.mapConfig.rooms.length < 3) {
-                parsed.mapConfig.rooms = this.getFallbackShift().mapConfig.rooms;
+                parsed.mapConfig.rooms = getFallbackShift().mapConfig.rooms;
             }
 
             return parsed;
@@ -82,29 +118,8 @@ export const GeminiService = {
             console.error("Gemini Shift Gen Failed:", error);
             // Return null or fallback?
             // Returning the fallback directly ensures the game always loads.
-            return this.getFallbackShift();
+            return getFallbackShift();
         }
-    },
-
-    getFallbackShift() {
-        return {
-            scenarioTitle: "Routine Maintenance",
-            scenarioDescription: "Just another Tuesday. Keep the lights on.",
-            npcMood: "Calm",
-            mapConfig: {
-                width: 128,
-                height: 128,
-                flavor: "Standard",
-                rooms: [
-                    { id: "Workshop", type: "workshop", w: 10, h: 8, x: 2, y: 2 },
-                    { id: "Lobby", type: "lobby", w: 12, h: 10, x: 58, y: 115 },
-                    { id: "ICU", type: "ward", w: 12, h: 12 },
-                    { id: "Cafeteria", type: "storage", w: 10, h: 10 },
-                    { id: "Office_A", type: "office", w: 6, h: 6 },
-                    { id: "Ward_B", type: "ward", w: 8, h: 8 }
-                ]
-            }
-        };
     },
 
     async generateInterruption(context: string): Promise<GeneratedInterruption | null> {

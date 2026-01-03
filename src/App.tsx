@@ -84,26 +84,11 @@ function App() {
         setIsSetupOpen(false);
 
       } catch (err) {
-        console.error("Shift Generation Failed", err);
-        setToast({ message: "Network Error. Loading Offline Protocol...", type: 'error' });
-
-        // Use Fallback Data immediately to prevent Black Screen
-        const fallbackShift = AIDirector.getCurrentShift() || {
-          scenarioTitle: "Backup System",
-          mapConfig: { width: 128, height: 128, rooms: [] } // GridMapManager will fill this
-        };
-
-        if (phaserRef.current?.scene) {
-          const game = phaserRef.current.game;
-          if (game) {
-            game.scene.stop('BenchScene');
-            game.scene.stop('StartScreen');
-            game.scene.start('MainGame', { shift: fallbackShift });
-          }
-        }
-
-        // Ensure we remove the loading overlay even on failure
-        setIsSetupOpen(false);
+        // This catch block is now a true "critical failure" state.
+        // AIDirector is designed to always return a valid shift, even on API failure.
+        // If we get here, something is fundamentally broken.
+        console.error("Critical Error During Shift Generation", err);
+        setToast({ message: "Error loading game. Please refresh.", type: 'error' });
       }
     };
 
