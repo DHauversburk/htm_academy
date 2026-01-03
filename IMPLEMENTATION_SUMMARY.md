@@ -75,8 +75,7 @@
     *   ✅ **Interruption UI**: Dynamic dialog system for handling requests.
     *   ✅ **Consequences**: Accepting events impacts Budget or Work Queue.
     *   ✅ **Phone Calls**: "Ringing" UI overlay with Answer/Ignore interactions.
-    *   **Emails**: Admin requests (Planned for Sprint 3).
-    *   **Emails**: Admin requests (Planned).
+    *   ✅ **Emails**: Admin requests with notification UI.
 
 ## 🗄️ Database Schema Roadmap
 ### Phase 1: User Data (Current)

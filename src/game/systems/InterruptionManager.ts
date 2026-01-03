@@ -1,8 +1,8 @@
-import type { InterruptionEvent, DialogOption, WorkOrder } from '../types';
+import type { InterruptionEvent, WorkOrder } from '../types';
 import { EventBus } from '../EventBus';
 
 export class InterruptionManager {
-    static generateEvent(difficulty: string): InterruptionEvent {
+    static generateEvent(): InterruptionEvent {
         // Simple random generator for now
         const templates = [
             {
@@ -38,6 +38,17 @@ export class InterruptionManager {
                     { label: 'Buy Updates ($200)', action: 'accept', consequence: '-$200 Budget, +5 Batteries', budgetImpact: -200 },
                     { label: 'Wait for Ground', action: 'defer', consequence: 'No cost, arrival next week' }
                 ]
+            },
+            {
+                type: 'email',
+                title: 'CAPEX Request: New Infusion Pumps',
+                npcName: 'Administration',
+                description: 'Please review the attached quote for 10 new infusion pumps and approve the purchase order. The total cost is $5,000.',
+                urgency: 'low',
+                options: [
+                    { label: 'Approve Purchase ($5,000)', action: 'accept', consequence: '-$5,000 Budget, +10 Pumps', budgetImpact: -5000 },
+                    { label: 'Request More Info', action: 'defer', consequence: 'Postpones decision, no immediate effect' }
+                ]
             }
         ];
 
@@ -50,8 +61,8 @@ export class InterruptionManager {
         } as InterruptionEvent;
     }
 
-    static triggerRandomInterruption(difficulty: string) {
-        const event = this.generateEvent(difficulty);
+    static triggerRandomInterruption() {
+        const event = this.generateEvent();
         console.log("Triggering Interruption:", event);
 
         if (event.type === 'walk-in') {
