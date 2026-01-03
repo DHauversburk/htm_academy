@@ -9,7 +9,7 @@ import type { InterruptionEvent } from '../types';
 export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    private wasd!: any;
+    private wasd!: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key; };
     private joystickInput = { x: 0, y: 0 };
 
     private mapManager!: GridMapManager;
@@ -242,8 +242,7 @@ export class MainGame extends Scene {
     // --- NPC System ---
 
     listenForInterruptions() {
-        EventBus.on('spawn-interruption-npc', (eventAny: any) => {
-            const event = eventAny as InterruptionEvent;
+        EventBus.on('spawn-interruption-npc', (event: InterruptionEvent) => {
             this.spawnNPC(event);
         });
     }
