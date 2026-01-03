@@ -3,10 +3,40 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../game/store';
 import { EventBus } from '../game/EventBus';
 import clsx from 'clsx';
+import { supabase } from '../lib/supabase';
 
 export const ProfileSetup = () => {
     const [step, setStep] = useState(0); // 0 = Intro, 1 = AuthChoice, 2 = Avatar, 3 = Name, 4 = Difficulty
     const { playerName, setPlayerName, difficulty, setDifficulty, completeSetup, setAuthMode, avatarColor, setAvatarColor } = useGameStore();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSignUp = async () => {
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+        });
+        if (error) {
+            setError(error.message);
+        } else {
+            // The onAuthStateChange listener in the store will handle the rest
+            setStep(2);
+        }
+    };
+
+    const handleLogin = async () => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) {
+            setError(error.message);
+        } else {
+            // The onAuthStateChange listener in the store will handle the rest
+            setStep(2);
+        }
+    };
 
     const handleComplete = () => {
         completeSetup();
@@ -75,21 +105,40 @@ export const ProfileSetup = () => {
                             </div>
                         </div>
 
-                        {/* Authenticated Option (Placeholder/Simulated for now) */}
-                        <div
-                            onClick={() => {
-                                setAuthMode('authenticated');
-                                setStep(2);
-                            }}
-                            className="bg-blue-900/20 border-2 border-blue-800 hover:border-blue-500 p-6 rounded-xl cursor-pointer group transition-all relative overflow-hidden"
-                        >
-                            <div className="flex justify-between items-center mb-2">
-                                <h4 className="text-blue-200 font-bold text-lg group-hover:text-blue-100">Authorized Personnel</h4>
-                                <span className="text-xs bg-blue-900 text-blue-300 px-2 py-1 rounded border border-blue-700">Cloud Sync</span>
+                        {/* Authenticated Option */}
+                        <div className="bg-blue-900/20 border-2 border-blue-800 p-6 rounded-xl">
+                            <h4 className="text-blue-200 font-bold text-lg mb-4">Authorized Personnel</h4>
+                            <div className="space-y-4">
+                                <input
+                                    type="email"
+                                    placeholder="Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-slate-800 border-2 border-slate-700 focus:border-blue-500 outline-none text-white p-2 rounded-xl transition-all"
+                                />
+                                <input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-slate-800 border-2 border-slate-700 focus:border-blue-500 outline-none text-white p-2 rounded-xl transition-all"
+                                />
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={handleSignUp}
+                                        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-xl font-medium transition-all"
+                                    >
+                                        Sign Up
+                                    </button>
+                                    <button
+                                        onClick={handleLogin}
+                                        className="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-medium transition-all"
+                                    >
+                                        Login
+                                    </button>
+                                </div>
+                                {error && <p className="text-red-500 text-sm">{error}</p>}
                             </div>
-                            <p className="text-blue-300/80 text-sm">
-                                Secure login. Progress synced across all devices.
-                            </p>
                         </div>
                     </div>
                 </motion.div>
