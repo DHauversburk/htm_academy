@@ -11,6 +11,8 @@ import { VirtualJoystick } from './ui/VirtualJoystick';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
+import { InterruptionEngine } from './game/systems/InterruptionEngine';
+import { InterruptionModal } from './ui/InterruptionModal';
 
 function App() {
   // Game Reference
@@ -70,6 +72,11 @@ function App() {
           game.scene.start('MainGame');
         }
       }
+
+      // Start the Interruption Engine
+      const engine = InterruptionEngine.getInstance();
+      engine.setDifficulty(difficulty);
+      engine.start();
     };
 
     const handleUiClosed = () => {
@@ -159,6 +166,8 @@ function App() {
   return (
     <div id="app" className="relative w-full h-full overflow-hidden">
       <PhaserGame ref={phaserRef} />
+
+      <InterruptionModal />
 
       <div className="absolute top-4 left-4 z-10 pointer-events-none">
         <h1 className="text-white font-bold text-xl drop-shadow-md">HTM Academy</h1>
