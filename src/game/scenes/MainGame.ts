@@ -6,10 +6,17 @@ import { InterruptionManager } from '../systems/InterruptionManager';
 import { PathfindingSystem } from '../systems/PathfindingSystem';
 import type { InterruptionEvent } from '../types';
 
+interface WasdKeys {
+    W: Phaser.Input.Keyboard.Key;
+    A: Phaser.Input.Keyboard.Key;
+    S: Phaser.Input.Keyboard.Key;
+    D: Phaser.Input.Keyboard.Key;
+}
+
 export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    private wasd!: any;
+    private wasd!: WasdKeys;
     private joystickInput = { x: 0, y: 0 };
 
     private mapManager!: GridMapManager;
@@ -38,7 +45,7 @@ export class MainGame extends Scene {
         // 1. Map Generation
         this.mapManager = new GridMapManager(this);
         // Small clinic: 128x128
-        this.mapManager.createProceduralMap(128, 128);
+        this.mapManager.createProceduralMap({ width: 128, height: 128 });
         const layer = this.mapManager.getLayer();
 
         // 2. Pathfinding Init
@@ -242,8 +249,7 @@ export class MainGame extends Scene {
     // --- NPC System ---
 
     listenForInterruptions() {
-        EventBus.on('spawn-interruption-npc', (eventAny: any) => {
-            const event = eventAny as InterruptionEvent;
+        EventBus.on('spawn-interruption-npc', (event: InterruptionEvent) => {
             this.spawnNPC(event);
         });
     }

@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
+import { type WorkOrder } from '../types';
 
 export class Bench extends Scene {
     private multimeter!: Phaser.GameObjects.Container;
@@ -17,7 +18,7 @@ export class Bench extends Scene {
         super('BenchScene');
     }
 
-    init(data: any) {
+    init(data: { mode: 'tutorial' | 'repair', details?: WorkOrder }) {
         // data.mode can be 'tutorial' or 'repair'
         this.isTutorial = data.mode === 'tutorial';
     }
@@ -217,7 +218,7 @@ export class Bench extends Scene {
             probe.setDepth(100); // Bring to front
         });
 
-        probe.on('drag', (_pointer: any, dragX: number, dragY: number) => {
+        probe.on('drag', (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
             probe.x = dragX;
             probe.y = dragY - 40; // Offset y so finger doesn't hide it!
         });
@@ -227,7 +228,7 @@ export class Bench extends Scene {
             probe.setDepth(10);
         });
 
-        probe.on('drop', (_pointer: any, target: Phaser.GameObjects.Zone) => {
+        probe.on('drop', (pointer: Phaser.Input.Pointer, target: Phaser.GameObjects.Zone) => {
             probe.x = target.x;
             probe.y = target.y;
 
