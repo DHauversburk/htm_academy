@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export const InterruptionDialog = () => {
     const [event, setEvent] = useState<InterruptionEvent | null>(null);
     const [isRinging, setIsRinging] = useState(false);
+    const [isEmail, setIsEmail] = useState(false);
     const { addWorkOrder, updateBudget } = useGameStore();
 
     useEffect(() => {
@@ -15,8 +16,11 @@ export const InterruptionDialog = () => {
             setEvent(incomingEvent);
             if (incomingEvent.type === 'phone') {
                 setIsRinging(true);
+            } else if (incomingEvent.type === 'email') {
+                setIsEmail(true);
             } else {
                 setIsRinging(false);
+                setIsEmail(false);
             }
         };
 
@@ -34,6 +38,15 @@ export const InterruptionDialog = () => {
         setEvent(null);
         setIsRinging(false);
         // Maybe minimal penalty for ignoring call?
+    };
+
+    const handleOpenEmail = () => {
+        setIsEmail(false);
+    };
+
+    const handleDeleteEmail = () => {
+        setEvent(null);
+        setIsEmail(false);
     };
 
     const handleOption = (option: DialogOption) => {
@@ -74,6 +87,42 @@ export const InterruptionDialog = () => {
 
     if (!event) return null;
 
+    // EMAIL NOTIFICATION UI
+    if (isEmail) {
+        return (
+            <AnimatePresence>
+                <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 100, opacity: 0 }}
+                    className="absolute bottom-10 right-10 bg-black/80 backdrop-blur-md border border-slate-600 p-6 rounded-2xl shadow-2xl text-white flex flex-col items-center gap-4 z-50 w-80"
+                >
+                    <div className="flex flex-col items-center">
+                        <div className="bg-yellow-500 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                            📧
+                        </div>
+                        <h3 className="font-bold text-lg">New Email</h3>
+                        <p className="text-slate-400 text-sm">{event.title}</p>
+                    </div>
+
+                    <div className="flex gap-4 w-full">
+                        <button
+                            onClick={handleOpenEmail}
+                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-lg shadow-lg active:scale-95 transition-all"
+                        >
+                            Open
+                        </button>
+                        <button
+                            onClick={handleDeleteEmail}
+                            className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 rounded-lg shadow-lg active:scale-95 transition-all"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </motion.div>
+            </AnimatePresence>
+        );
+    }
     // PHONE RINGING UI
     if (isRinging) {
         return (
@@ -132,11 +181,16 @@ export const InterruptionDialog = () => {
                             })}>
                                 {event.urgency}
                             </span>
-                            <span className="text-slate-400 text-sm">{event.type === 'walk-in' ? 'Walk-in Request' : 'Incoming Call'}</span>
+                            <span className="text-slate-400 text-sm">{event.type === 'walk-in' ? 'Walk-in Request' : (event.type === 'email' ? 'Incoming Email' : 'Incoming Call')}</span>
                         </div>
                         <h3 className="text-xl font-bold font-display">{event.title}</h3>
-                        {event.npcName && <p className="text-blue-400 text-sm font-medium">{event.npcName} says:</p>}
+                        {event.npcName && <p className="text-blue-400 text-sm font-medium">{event.npcName} {event.type === 'email' ? 'writes' : 'says'}:</p>}
                     </div>
+                    {event.type === 'email' && (
+                        <div className="text-2xl">
+                            📧
+                        </div>
+                    )}
                 </div>
 
                 <div className="mb-6 bg-slate-800/50 p-4 rounded border-l-4 border-blue-500">

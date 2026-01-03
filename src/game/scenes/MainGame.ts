@@ -108,7 +108,7 @@ export class MainGame extends Scene {
 
             // DEBUG: Trigger Interruption
             this.input.keyboard.on('keydown-I', () => {
-                InterruptionManager.triggerRandomInterruption('medium');
+                InterruptionManager.triggerRandomInterruption();
             });
         }
 
