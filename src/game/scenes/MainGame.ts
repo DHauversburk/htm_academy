@@ -7,6 +7,7 @@ export class MainGame extends Scene {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private wasd!: any;
     private interactKey!: Phaser.Input.Keyboard.Key;
+    private joystickVector!: { x: number, y: number, angle: number };
 
     // Zones
     private zones: { x: number, name: string, callback: () => void }[] = [];
@@ -92,6 +93,7 @@ export class MainGame extends Scene {
         this.promptText.setScrollFactor(1);
 
         // 7. Inputs
+        this.joystickVector = { x: 0, y: 0, angle: 0 }; // Initialize
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
             this.wasd = this.input.keyboard.addKeys('W,A,S,D');
@@ -106,6 +108,10 @@ export class MainGame extends Scene {
             });
         }
 
+        EventBus.on('joystick-move', (vector: { x: number, y: number, angle: number }) => {
+            this.joystickVector = vector;
+        });
+
         EventBus.emit('scene-ready', this);
     }
 
@@ -118,8 +124,14 @@ export class MainGame extends Scene {
         // Reset Velocity
         body.setVelocityX(0);
 
-        // Movement
-        if (this.cursors.left.isDown || this.wasd.A.isDown) {
+        // Prioritize Joystick Input
+        if (this.joystickVector.x !== 0) {
+            body.setVelocityX(this.joystickVector.x * speed);
+            this.player.setFlipX(this.joystickVector.x < 0);
+            this.player.play('walk', true);
+        }
+        // Fallback to Keyboard
+        else if (this.cursors.left.isDown || this.wasd.A.isDown) {
             body.setVelocityX(-speed);
             this.player.setFlipX(true);
             this.player.play('walk', true);

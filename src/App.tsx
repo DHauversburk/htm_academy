@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { ProfileSetup } from './ui/ProfileSetup';
 import { WorkOrderList } from './ui/WorkOrderList';
 import { RepairMenu } from './ui/RepairMenu';
+import { VirtualJoystick } from './ui/VirtualJoystick';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
@@ -44,14 +45,8 @@ function App() {
 
     const handleStartTutorial = () => {
       setIsSetupOpen(false);
-
-      // Start Orientation (Tutorial Mode)
-      if (phaserRef.current?.scene) {
-        const game = phaserRef.current.game;
-        if (game) {
-          game.scene.start('BenchScene', { mode: 'tutorial' });
-        }
-      }
+      // Let the StartScreen scene handle the transition
+      EventBus.emit('start-game');
     };
 
     const handleTutorialComplete = () => {
@@ -165,7 +160,12 @@ function App() {
       {isSetupOpen && <ProfileSetup />}
 
       {/* Work Order Queue (Only show active game) */}
-      {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && <WorkOrderList />}
+      {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && (
+        <>
+          <WorkOrderList />
+          <VirtualJoystick />
+        </>
+      )}
 
       {/* Repair Menu */}
       {isRepairMenuOpen && (
