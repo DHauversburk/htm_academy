@@ -1,8 +1,29 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Chess Knight Silhouette -->
-  <path d="M256 80C256 80 280 60 320 80C360 100 380 140 380 180C380 220 360 240 340 260L360 420H380V460H132V420H152L172 260C152 240 132 220 132 180C132 140 152 100 192 80C232 60 256 80 256 80Z" fill="#0f172a"/>
+  <defs>
+    <filter id="shadow" x="0" y="0" width="512" height="512" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="4"/>
+      <feGaussianBlur stdDeviation="2"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+    </filter>
+  </defs>
   
-  <!-- Medical Cross at base -->
-  <rect x="236" y="400" width="40" height="100" fill="#4f46e5"/>
-  <rect x="206" y="430" width="100" height="40" fill="#4f46e5"/>
+  <g filter="url(#shadow)">
+    <!-- Base -->
+    <path d="M120 440H392C400.837 440 408 432.837 408 424V408C408 399.163 400.837 392 392 392H120C111.163 392 104 399.163 104 408V424C104 432.837 111.163 440 120 440Z" fill="#F8FAFC"/>
+    
+    <!-- Knight Body -->
+    <path d="M256 88C220.654 88 192 116.654 192 152V184H160V152C160 98.9807 202.981 56 256 56C309.019 56 352 98.9807 352 152V392H160V264C160 228.654 188.654 200 224 200H320V152C320 116.654 291.346 88 256 88Z" fill="#F8FAFC"/>
+    
+    <!-- Knight Head Detail -->
+    <path d="M256 56C280 40 320 40 352 72C368 88 384 120 384 152V200H320V152C320 116.654 291.346 88 256 88" fill="#F8FAFC"/>
+    
+    <!-- Medical Cross (Indigo) -->
+    <rect x="216" y="240" width="80" height="24" rx="4" fill="#4F46E5"/>
+    <rect x="244" y="212" width="24" height="80" rx="4" fill="#4F46E5"/>
+  </g>
 </svg>

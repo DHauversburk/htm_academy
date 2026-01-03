@@ -79,6 +79,10 @@ function App() {
             game.scene.start('MainGame', { shift: shiftData });
           }
         }
+
+        // Success! Close the setup wizard.
+        setIsSetupOpen(false);
+
       } catch (err) {
         console.error("Shift Generation Failed", err);
         setToast({ message: "Failed to load shift. Using fallback.", type: 'error' });
