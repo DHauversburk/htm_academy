@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { WorkOrder } from './types';
 import { supabase } from '../lib/supabase';
 import { SKILL_TREE } from './data/skills';
+import { ACHIEVEMENTS } from './data/achievements';
+import type { Achievement, PerformanceMetrics } from './data/achievements';
 
 // Basic catalogue for v1
 export const PARTS_CATALOGUE: Record<string, { name: string, cost: number, desc: string, weight: number }> = {
@@ -37,6 +39,10 @@ interface GameState {
     budget: number;
     inventory: Record<string, number>; // itemId -> quantity
 
+    // Achievements & Performance
+    achievements: Record<string, Achievement>;
+    metrics: PerformanceMetrics;
+
     setPlayerName: (name: string) => void;
     setDifficulty: (level: 'easy' | 'medium' | 'hard') => void;
     setAuthMode: (mode: 'guest' | 'authenticated') => void;
@@ -59,6 +65,10 @@ interface GameState {
     syncInventory: () => Promise<void>;
     logTicketCompletion: (ticket: WorkOrder, fault: string, xp: number) => Promise<void>;
     unlockSkill: (skillId: string) => boolean;
+
+    // Performance Tracking
+    trackMetric: (metric: keyof PerformanceMetrics, value: number) => void;
+    checkAchievements: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -71,6 +81,34 @@ export const useGameStore = create<GameState>((set, get) => ({
     activeOrderId: null,
     budget: 1000,
     inventory: {},
+
+    // Initialize achievements from registry
+    achievements: Object.fromEntries(
+        Object.entries(ACHIEVEMENTS).map(([id, data]) => [
+            id,
+            { ...data, progress: 0 }
+        ])
+    ),
+
+    // Initialize metrics
+    metrics: {
+        totalRepairs: 0,
+        perfectRepairs: 0,
+        failedRepairs: 0,
+        emergencyCallsCompleted: 0,
+        afterHoursRepairs: 0,
+        averageRepairTime: 0,
+        npcInteractions: 0,
+        difficultNpcsDiffused: 0,
+        complaintsFiled: 0,
+        totalBudgetSpent: 0,
+        totalBudgetSaved: 0,
+        partsImprovised: 0,
+        componentLevelRepairs: 0,
+        diagnosticAccuracy: 100,
+        pmsCompleted: 0,
+        pmScoreAverage: 0
+    },
 
     stats: {
         level: 1,
@@ -297,5 +335,100 @@ export const useGameStore = create<GameState>((set, get) => ({
         get().saveProfile();
 
         return true;
+    },
+
+    trackMetric: (metric, value) => {
+        const { metrics, checkAchievements } = get();
+        set({
+            metrics: {
+                ...metrics,
+                [metric]: typeof value === 'number' ? value : metrics[metric] + 1
+            }
+        });
+
+        // Check if this triggered any achievements
+        requestAnimationFrame(() => checkAchievements());
+    },
+
+    checkAchievements: () => {
+        const { achievements, metrics, stats } = get();
+        let unlocked = false;
+
+        // Night Owl check
+        if (achievements.night_shift_veteran.progress < achievements.night_shift_veteran.target) {
+            const newProgress = metrics.afterHoursRepairs;
+            if (newProgress >= achievements.night_shift_veteran.target) {
+                set({
+                    achievements: {
+                        ...achievements,
+                        night_shift_veteran: { ...achievements.night_shift_veteran, progress: newProgress }
+                    },
+                    stats: {
+                        ...stats,
+                        unlockedSkills: [...stats.unlockedSkills, 'night_owl']
+                    }
+                });
+                unlocked = true;
+            }
+        }
+
+        // MacGyver check
+        if (achievements.improvisational_genius.progress < achievements.improvisational_genius.target) {
+            const newProgress = metrics.partsImprovised;
+            if (newProgress >= achievements.improvisational_genius.target) {
+                set({
+                    achievements: {
+                        ...achievements,
+                        improvisational_genius: { ...achievements.improvisational_genius, progress: newProgress }
+                    },
+                    stats: {
+                        ...stats,
+                        unlockedSkills: [...stats.unlockedSkills, 'mcgyver']
+                    }
+                });
+                unlocked = true;
+            }
+        }
+
+        // Peacemaker check
+        if (achievements.conflict_resolution_expert.progress < achievements.conflict_resolution_expert.target) {
+            const newProgress = metrics.difficultNpcsDiffused;
+            if (newProgress >= achievements.conflict_resolution_expert.target) {
+                set({
+                    achievements: {
+                        ...achievements,
+                        conflict_resolution_expert: { ...achievements.conflict_resolution_expert, progress: newProgress }
+                    },
+                    stats: {
+                        ...stats,
+                        unlockedSkills: [...stats.unlockedSkills, 'peacemaker']
+                    }
+                });
+                unlocked = true;
+            }
+        }
+
+        // Perfectionist check
+        if (achievements.zero_defect_master.progress < achievements.zero_defect_master.target) {
+            const newProgress = metrics.perfectRepairs;
+            if (newProgress >= achievements.zero_defect_master.target) {
+                set({
+                    achievements: {
+                        ...achievements,
+                        zero_defect_master: { ...achievements.zero_defect_master, progress: newProgress }
+                    },
+                    stats: {
+                        ...stats,
+                        unlockedSkills: [...stats.unlockedSkills, 'perfectionist']
+                    }
+                });
+                unlocked = true;
+            }
+        }
+
+        if (unlocked) {
+            // Save to cloud if authenticated
+            get().saveProfile();
+        }
     }
 }));
