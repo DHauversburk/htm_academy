@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { ProfileSetup } from './ui/ProfileSetup';
 import { WorkOrderList } from './ui/WorkOrderList';
 import { RepairMenu } from './ui/RepairMenu';
+import { VirtualJoystick } from './ui/VirtualJoystick';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
@@ -49,6 +50,7 @@ function App() {
       if (phaserRef.current?.scene) {
         const game = phaserRef.current.game;
         if (game) {
+          game.scene.stop('StartScreen'); // Explicitly stop the start screen
           game.scene.start('BenchScene', { mode: 'tutorial' });
         }
       }
@@ -63,6 +65,8 @@ function App() {
       if (phaserRef.current?.scene) {
         const game = phaserRef.current.game;
         if (game) {
+          game.scene.stop('BenchScene');
+          game.scene.stop('StartScreen'); // Ensure this is definitely gone
           game.scene.start('MainGame');
         }
       }
@@ -165,7 +169,14 @@ function App() {
       {isSetupOpen && <ProfileSetup />}
 
       {/* Work Order Queue (Only show active game) */}
-      {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && <WorkOrderList />}
+      {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && (
+        <>
+          <WorkOrderList />
+          <div className="lg:hidden block"> {/* Only show joystick on mobile/tablet */}
+            <VirtualJoystick />
+          </div>
+        </>
+      )}
 
       {/* Repair Menu */}
       {isRepairMenuOpen && (

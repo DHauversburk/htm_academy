@@ -8,6 +8,8 @@ export class MainGame extends Scene {
     private wasd!: any;
     private interactKey!: Phaser.Input.Keyboard.Key;
 
+    private joystickInput = { x: 0, y: 0 };
+
     // Zones
     private zones: { x: number, name: string, callback: () => void }[] = [];
     private activeZone: string | null = null;
@@ -73,8 +75,6 @@ export class MainGame extends Scene {
 
         // Start idle
         this.player.play('idle');
-        // Constrain to "floor" area
-        // We'll just let him walk left/right for now 
 
         // 5. Camera
         this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
@@ -87,9 +87,7 @@ export class MainGame extends Scene {
             backgroundColor: '#000000',
             padding: { x: 8, y: 4 },
             color: '#ffffff'
-        }).setVisible(false).setScrollFactor(0); // HUD style? Or floating? 
-        // Actually let's make it floating above player
-        this.promptText.setScrollFactor(1);
+        }).setVisible(false).setScrollFactor(1);
 
         // 7. Inputs
         if (this.input.keyboard) {
@@ -106,6 +104,16 @@ export class MainGame extends Scene {
             });
         }
 
+        // Joystick Listener
+        EventBus.on('joystick-move', (data: { x: number, y: number }) => {
+            this.joystickInput = data;
+        });
+
+        // Cleanup
+        this.events.on('shutdown', () => {
+            EventBus.removeListener('joystick-move');
+        });
+
         EventBus.emit('scene-ready', this);
     }
 
@@ -118,12 +126,15 @@ export class MainGame extends Scene {
         // Reset Velocity
         body.setVelocityX(0);
 
-        // Movement
-        if (this.cursors.left.isDown || this.wasd.A.isDown) {
+        // Movement (Keyboard or Joystick)
+        const isLeft = this.cursors.left.isDown || this.wasd.A.isDown || this.joystickInput.x < -0.2;
+        const isRight = this.cursors.right.isDown || this.wasd.D.isDown || this.joystickInput.x > 0.2;
+
+        if (isLeft) {
             body.setVelocityX(-speed);
             this.player.setFlipX(true);
             this.player.play('walk', true);
-        } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
+        } else if (isRight) {
             body.setVelocityX(speed);
             this.player.setFlipX(false);
             this.player.play('walk', true);
