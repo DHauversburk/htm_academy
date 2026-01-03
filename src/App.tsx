@@ -13,11 +13,13 @@ import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
 import { InterruptionDialog } from './ui/InterruptionDialog';
 import { InventoryHUD } from './ui/InventoryHUD';
+import { SupplyCabinet } from './ui/SupplyCabinet';
 
 function App() {
   // Game Reference
   const phaserRef = useRef<IRefPhaserGame>(null);
   const [isWorkOrderOpen, setIsWorkOrderOpen] = useState(false);
+  const [isSupplyOpen, setIsSupplyOpen] = useState(false);
   const [isSetupOpen, setIsSetupOpen] = useState(false);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
   const [currentWO, setCurrentWO] = useState<any>(null);
@@ -106,6 +108,10 @@ function App() {
       }
     };
 
+    const handleOpenSupply = () => {
+      setIsSupplyOpen(true);
+    };
+
     EventBus.on('open-work-order', handleOpenWO);
     EventBus.on('start-setup', handleStartSetup);
     EventBus.on('start-tutorial', handleStartTutorial);
@@ -114,6 +120,7 @@ function App() {
     EventBus.on('start-repair', handleStartRepair);
     EventBus.on('open-repair-menu', handleOpenRepairMenu);
     EventBus.on('show-toast', handleShowToast);
+    EventBus.on('open-supply-cabinet', handleOpenSupply);
 
     return () => {
       EventBus.removeListener('open-work-order', handleOpenWO);
@@ -124,6 +131,7 @@ function App() {
       EventBus.removeListener('start-repair', handleStartRepair);
       EventBus.removeListener('open-repair-menu', handleOpenRepairMenu);
       EventBus.removeListener('show-toast', handleShowToast);
+      EventBus.removeListener('open-supply-cabinet', handleOpenSupply);
     };
   }, [difficulty, setWorkOrders, setActiveOrder]);
 
@@ -197,6 +205,9 @@ function App() {
           onComplete={handleRepairComplete}
         />
       )}
+
+      {/* Supply Cabinet */}
+      {isSupplyOpen && <SupplyCabinet onClose={() => setIsSupplyOpen(false)} />}
 
       {/* Interruption Overlay */}
       <InterruptionDialog />
