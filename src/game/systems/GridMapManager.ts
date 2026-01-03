@@ -58,16 +58,24 @@ export class GridMapManager {
             this.grid.push(row);
         }
 
+        // FORCE PROCEDURAL LAYOUT (AI Geometry is too unreliable)
+        // If config exists, we validted width/height, but we ignore the specific room coords 
+        // to prevent "tiny islands" or overlapping rooms.
+        this.generateHospitalLayout(width, height);
+
+        /* 
         if (config && config.rooms && config.rooms.length > 0) {
             this.generateFromConfig(config.rooms, width, height);
         } else {
             console.warn("No suitable room config found. Generating procedural hospital layout.");
             this.generateHospitalLayout(width, height);
         }
+        */
 
         this.map.setCollision(1);
     }
 
+    /*
     private generateFromConfig(rooms: any[], mapWidth: number, mapHeight: number) {
         this.rooms = [];
 
@@ -103,6 +111,7 @@ export class GridMapManager {
             this.createCorridor(this.rooms[i], this.rooms[i + 1]);
         }
     }
+    */
 
     private generateHospitalLayout(mapWidth: number, mapHeight: number) {
         this.rooms = [];

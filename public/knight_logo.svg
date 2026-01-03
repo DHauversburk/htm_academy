@@ -1,36 +1,21 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="plate_grad" x1="256" y1="56" x2="256" y2="440" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#F1F5F9"/>
-      <stop offset="1" stop-color="#CBD5E1"/>
-    </linearGradient>
-    <filter id="shadow" x="0" y="0" width="512" height="512" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-      <feOffset dy="8"/>
-      <feGaussianBlur stdDeviation="4"/>
-      <feComposite in2="hardAlpha" operator="out"/>
-      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.4 0"/>
-      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
-      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
-    </filter>
-  </defs>
+<svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Medical Cross Background -->
+  <path d="M180 100 H332 V180 H412 V332 H332 V412 H180 V332 H100 V180 H180 V100 Z" fill="none" stroke="white" stroke-width="24" stroke-linejoin="round"/>
   
-  <g filter="url(#shadow)">
-    <!-- Base -->
-    <path d="M120 440H392C405.255 440 416 429.255 416 416V400C416 386.745 405.255 376 392 376H120C106.745 376 96 386.745 96 400V416C96 429.255 106.745 440 120 440Z" fill="#334155"/>
-    
-    <!-- Knight Body -->
-    <!-- Distinctive Horse Head Shape -->
-    <path d="M256 56C200 56 168 110 168 152V184L144 208V264H168V376H344V152C344 110 320 56 256 56Z" fill="url(#plate_grad)"/>
-    <path d="M168 184C168 184 140 184 128 200V240C128 240 140 264 168 264" fill="#334155"/>
-    
-    <!-- Face Detail -->
-    <path d="M260 90 L320 90 L320 160 L260 160 Z" fill="#1e293b"/> 
-    <circle cx="280" cy="120" r="10" fill="#4F46E5"/>
-
-    <!-- Medical Cross (Indigo) -->
-    <rect x="236" y="240" width="40" height="100" rx="4" fill="#4F46E5"/>
-    <rect x="206" y="270" width="100" height="40" rx="4" fill="#4F46E5"/>
-  </g>
+  <!-- Chess Knight Profile (Foreground) -->
+  <path d="M256 180 
+           C 256 140, 280 120, 320 120
+           L 360 140
+           L 360 200
+           L 320 200
+           L 320 220
+           L 360 260
+           L 360 412
+           H 152
+           L 152 380
+           C 152 300, 200 240, 256 180" 
+           fill="#0f172a" stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+           
+  <!-- Eye -->
+  <circle cx="280" cy="180" r="12" fill="white"/>
 </svg>
