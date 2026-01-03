@@ -250,7 +250,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         let totalWeight = 0;
         Object.entries(state.inventory).forEach(([id, qty]) => {
             const item = PARTS_CATALOGUE[id];
-            if (item) totalWeight += item.weight * qty;
+            // If item exists in catalogue and has a valid weight, add it to the calculation
+            if (item && typeof item.weight === 'number') {
+                totalWeight += item.weight * qty;
+            }
         });
 
         // Capacity Limits

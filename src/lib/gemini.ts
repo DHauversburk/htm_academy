@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { DailyShift } from "../game/types";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -26,10 +27,10 @@ export interface GeneratedInterruption {
 export const GeminiService = {
     isEnabled,
 
-    async generateDailyShift(difficulty: string): Promise<any | null> {
+    async generateDailyShift(difficulty: string): Promise<DailyShift | null> {
         if (!genAI) {
             // Fallback for when AI is off
-            return this.getFallbackShift(difficulty);
+            return this.getFallbackShift();
         }
 
         try {
@@ -63,14 +64,14 @@ export const GeminiService = {
             const result = await model.generateContent(prompt);
             const response = await result.response;
             const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(text);
+            return JSON.parse(text) as DailyShift;
         } catch (error) {
             console.error("Gemini Shift Gen Failed:", error);
-            return this.getFallbackShift(difficulty);
+            return this.getFallbackShift();
         }
     },
 
-    getFallbackShift(difficulty: string) {
+    getFallbackShift(): DailyShift {
         return {
             scenarioTitle: "Routine Maintenance",
             scenarioDescription: "Just another Tuesday. Keep the lights on.",
