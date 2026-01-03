@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import type { MapRoomConfig } from '../types';
 
 export interface Room {
     id: string;
@@ -25,7 +26,7 @@ export class GridMapManager {
         this.scene = scene;
     }
 
-    createProceduralMap(config?: { width: number, height: number, rooms: any[] }) {
+    createProceduralMap(config?: { width: number; height: number; rooms: MapRoomConfig[] }) {
         const width = config?.width || 128;
         const height = config?.height || 128;
 
@@ -66,7 +67,7 @@ export class GridMapManager {
         this.map.setCollision(1);
     }
 
-    private generateFromConfig(rooms: any[], mapWidth: number, mapHeight: number) {
+    private generateFromConfig(rooms: MapRoomConfig[], mapWidth: number, mapHeight: number) {
         this.rooms = [];
 
         // 1. Place Rooms

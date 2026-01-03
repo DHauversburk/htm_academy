@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { type IRefPhaserGame, PhaserGame } from './game/PhaserGame';
+import type { WorkOrder } from './game/types';
 import { EventBus } from './game/EventBus';
 import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
@@ -24,7 +25,7 @@ function App() {
   const [isSupplyOpen, setIsSupplyOpen] = useState(false);
   const [isSetupOpen, setIsSetupOpen] = useState(true);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
-  const [currentWO, setCurrentWO] = useState<any>(null);
+  const [currentWO, setCurrentWO] = useState<WorkOrder | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isCareerDashboardOpen, setIsCareerDashboardOpen] = useState(false);
 
@@ -40,7 +41,7 @@ function App() {
 
   useEffect(() => {
     // Listen for Work Order events from Phaser
-    const handleOpenWO = (data: any) => {
+    const handleOpenWO = (data: WorkOrder) => {
       setCurrentWO(data);
       setIsWorkOrderOpen(true);
       setActiveOrder(data.id);
@@ -90,7 +91,7 @@ function App() {
       setActiveOrder(null);
     };
 
-    const handleStartRepair = (data: any) => {
+    const handleStartRepair = (data: { details: WorkOrder }) => {
       // Close UI overlays
       setIsWorkOrderOpen(false);
       setCurrentWO(data.details); // Ensure we have the latest details
@@ -109,7 +110,7 @@ function App() {
       setIsRepairMenuOpen(true);
     };
 
-    const handleShowToast = (data: any) => {
+    const handleShowToast = (data: { message: string, type: 'success' | 'error' } | string) => {
       if (typeof data === 'string') {
         setToast({ message: data, type: 'success' });
       } else {
@@ -153,7 +154,7 @@ function App() {
     EventBus.emit('ui-closed');
   };
 
-  const handleRepairComplete = (actionId: string, _notes: string) => {
+  const handleRepairComplete = (actionId: string) => {
     setIsRepairMenuOpen(false);
 
     if (!currentWO) return;

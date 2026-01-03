@@ -1,17 +1,15 @@
-import React from 'react';
 import { useGameStore, PARTS_CATALOGUE } from '../game/store';
 import { motion } from 'framer-motion';
-import clsx from 'clsx';
 
 interface Props {
     onClose: () => void;
 }
 
 export const SupplyCabinet = ({ onClose }: Props) => {
-    const { addToInventory, inventory, updateBudget, calculateSpeed } = useGameStore();
+    const { addToInventory, inventory } = useGameStore();
 
-    const handleTake = (itemId: string, item: any) => {
-        // In this simulation, taking parts costs the department budget? 
+    const handleTake = (itemId: string) => {
+        // In this simulation, taking parts costs the department budget?
         // Or is it free until installed? Let's say taking it costs money (buying stock).
         // User said "Supply cabinets for bmets are always in the bmet shop".
         // Usually parts are alread purchased. Let's assume free to take, but costs budget when *ordered* (future feature).
@@ -62,7 +60,7 @@ export const SupplyCabinet = ({ onClose }: Props) => {
                                             Carrying: <span className="text-white font-bold">{currentQty}</span>
                                         </div>
                                         <button
-                                            onClick={() => handleTake(id, item)}
+                                            onClick={() => handleTake(id)}
                                             className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded font-bold transition-all active:scale-95"
                                         >
                                             Take 1
