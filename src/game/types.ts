@@ -44,3 +44,27 @@ export interface Scenario {
     description: string;
     orders: WorkOrder[];
 }
+
+export interface DialogOption {
+    label: string;
+    action: 'accept' | 'defer' | 'refuse';
+    consequence?: string; // Description of what happens
+}
+
+export interface InterruptionEvent {
+    id: string;
+    type: 'walk-in' | 'phone' | 'email';
+    title: string;
+    description: string;
+    npcName?: string;
+    urgency: 'low' | 'medium' | 'high' | 'critical';
+    options: DialogOption[];
+    associatedTicket?: WorkOrder; // If accepted, this ticket is created
+}
+
+export interface NPCConfig {
+    name: string;
+    role: 'nurse' | 'doctor' | 'admin';
+    spriteKey: string;
+    dialogue: string[]; // Random pool of opening lines
+}

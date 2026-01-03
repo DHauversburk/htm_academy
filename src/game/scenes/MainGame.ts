@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
 import { useGameStore } from '../store';
+import { InterruptionManager } from '../systems/InterruptionManager';
 
 export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
@@ -20,8 +21,6 @@ export class MainGame extends Scene {
     }
 
     preload() {
-        // Load as spritesheet to handle animation frames
-        // Assuming the generator made a standard 64x64 grid based on the prompt "small scale"
         this.load.spritesheet('sprite_technician', 'assets/sprite_technician_chonk.png', {
             frameWidth: 64,
             frameHeight: 64
@@ -60,7 +59,7 @@ export class MainGame extends Scene {
         if (!this.anims.exists('walk')) {
             this.anims.create({
                 key: 'walk',
-                frames: this.anims.generateFrameNumbers('sprite_technician', { start: 0, end: 3 }), // Guessing first 4 frames are walk
+                frames: this.anims.generateFrameNumbers('sprite_technician', { start: 0, end: 3 }),
                 frameRate: 8,
                 repeat: -1
             });
@@ -101,6 +100,11 @@ export class MainGame extends Scene {
                     const zone = this.zones.find(z => z.name === this.activeZone);
                     if (zone) zone.callback();
                 }
+            });
+
+            // DEBUG: Trigger Interruption
+            this.input.keyboard.on('keydown-I', () => {
+                InterruptionManager.triggerRandomInterruption('medium');
             });
         }
 
@@ -188,26 +192,10 @@ export class MainGame extends Scene {
     }
 
     openWorkshop() {
-        // Trigger the Work Order UI we built earlier
-        // We'll fetch the first active order just to open the list
-        // Actually, we just want to OPEN the list, not a specific order.
-        // For now, let's just trigger the 'open-work-order' with a dummy or modify app to handle 'open-menu'
-        // But better yet: Use the existing flow.
-
-        // Let's just emit a custom event to App.tsx to show the queue if it's hidden?
-        // App.tsx logic: "isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && <WorkOrderList />"
-        // The list is ALWAYS visible on the screen in valid state.
-
-        // Feedback:
-        // "You are in the workshop. Access the terminal to see jobs."
         this.showToast("Accessing Workshop Terminal...");
-        // In the future, we could hide the list until you enter the room.
     }
 
     showToast(message: string) {
-        // Quick hack to reuse the toast from App.tsx??
-        // We can emit a valid event? 
-        // Simulating a game alert via Phaser text for now
         const toast = this.add.text(this.player.x, this.player.y - 120, message, {
             backgroundColor: '#000000', color: '#ffffff', padding: { x: 10, y: 5 }
         }).setOrigin(0.5);

@@ -11,6 +11,7 @@ import { VirtualJoystick } from './ui/VirtualJoystick';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
+import { InterruptionDialog } from './ui/InterruptionDialog';
 
 function App() {
   // Game Reference
@@ -185,6 +186,9 @@ function App() {
           onComplete={handleRepairComplete}
         />
       )}
+
+      {/* Interruption Overlay */}
+      <InterruptionDialog />
 
       {/* Toast Notification */}
       <AnimatePresence>
