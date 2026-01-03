@@ -132,6 +132,19 @@ export const ProfileSetup = () => {
                                     </button>
 
                                     <button
+                                        onClick={() => setRole('tech')}
+                                        className={clsx(
+                                            "p-4 rounded-xl border text-left transition-all",
+                                            role === 'tech'
+                                                ? "bg-amber-600/20 border-amber-500 ring-1 ring-amber-500"
+                                                : "bg-slate-800 border-slate-700 hover:border-slate-600"
+                                        )}
+                                    >
+                                        <div className="font-bold text-amber-300">Technician (Medium)</div>
+                                        <div className="text-xs text-slate-400 mt-1">A standard shift with a mix of routine tasks and unexpected challenges.</div>
+                                    </button>
+
+                                    <button
                                         onClick={() => setRole('manager')}
                                         className={clsx(
                                             "p-4 rounded-xl border text-left transition-all",
