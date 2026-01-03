@@ -7,8 +7,10 @@ import clsx from 'clsx';
 import { ProfileSetup } from './ui/ProfileSetup';
 import { WorkOrderList } from './ui/WorkOrderList';
 import { RepairMenu } from './ui/RepairMenu';
+import { InterruptionModal } from './ui/InterruptionModal';
 import { VirtualJoystick } from './ui/VirtualJoystick';
 import { useGameStore } from './game/store';
+import { InterruptionEngine } from './game/systems/InterruptionEngine';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
 
@@ -30,6 +32,16 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  useEffect(() => {
+    const engine = InterruptionEngine.getInstance();
+    if (isSetupComplete) {
+      engine.start();
+    }
+    return () => {
+      engine.stop();
+    };
+  }, [isSetupComplete]);
 
   useEffect(() => {
     // Listen for Work Order events from Phaser
@@ -159,6 +171,8 @@ function App() {
   return (
     <div id="app" className="relative w-full h-full overflow-hidden">
       <PhaserGame ref={phaserRef} />
+
+      <InterruptionModal />
 
       <div className="absolute top-4 left-4 z-10 pointer-events-none">
         <h1 className="text-white font-bold text-xl drop-shadow-md">HTM Academy</h1>

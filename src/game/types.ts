@@ -44,3 +44,11 @@ export interface Scenario {
     description: string;
     orders: WorkOrder[];
 }
+
+export interface Interruption {
+  type: 'phone' | 'email' | 'person';
+  title: string;
+  sender: string;
+  message: string;
+  choices: { text: string; action: string }[];
+}
