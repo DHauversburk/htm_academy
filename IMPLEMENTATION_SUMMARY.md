@@ -68,25 +68,31 @@
     *   **Mobile Support**: Virtual Joystick and responsive layouts.
     *   **Bench Accessibility**: Improved hitboxes and visual cable feedback.
 
-### Sprint 2: The "Interruption Engine" (CURRENT)
-*   **Goal**: Simulate the social/admin pressures of a BMET.
-*   **Features**:
-    *   ✅ **Walking NPCs**: Nurses and Doctors physically walk up to you in the hallway.
-    *   ✅ **Interruption UI**: Dynamic dialog system for handling requests.
-    *   ✅ **Consequences**: Accepting events impacts Budget or Work Queue.
-    *   ✅ **Phone Calls**: "Ringing" UI overlay with Answer/Ignore interactions.
-    *   **Emails**: Admin requests (Planned for Sprint 3).
-    *   **Emails**: Admin requests (Planned).
+### Sprint 2: The "Interruption Engine" (COMPLETED)
+*   **Status**: 100% Complete
+*   ✅ **Walking NPCs**: Nurses and Doctors physically walk up to you in the hallway.
+*   ✅ **Interruption UI**: Dynamic dialog system for handling requests.
+*   ✅ **Consequences**: Accepting events impacts Budget or Work Queue.
+*   ✅ **Phone Calls**: "Ringing" UI overlay with Answer/Ignore interactions.
+*   *Note: Email system deferred to Admin Logic phase.*
 
-### Sprint 3: Map & Movement Overhaul (STARTED)
-*   **Goal**: Shift from side-scroller to top-down RPG View with Grid Map.
-*   **Features**:
-    *   ✅ **Grid System**: Procedural 128x128 tilemap generation.
-    *   ✅ **Top-Down Movement**: X/Y velocity with joystick support.
-    *   ✅ **RPG Stats**: Strength, Speed, Inventory Weight logic.
-    *   **Encumbrance**: Carrying too much slows you down.
-    *   **Containers**: Hands -> Bag -> Cart progression (Data layer implemented).
-    *   **Pathfinding**: NPCs navigating the grid (Next).
+### Sprint 3: Map & Movement Overhaul (COMPLETED)
+*   **Status**: 100% Complete
+*   ✅ **Grid System**: Procedural 128x128 tilemap generation.
+*   ✅ **Top-Down Movement**: X/Y velocity with joystick/keyboard support.
+*   ✅ **RPG Stats**: Strength, Speed, Inventory Weight logic.
+*   ✅ **Encumbrance**: Carrying too much slows you down.
+*   ✅ **Supply Chain**: Logic for acquiring parts (Supply Cabinet UI).
+*   ✅ **Pathfinding**: A* (EasyStar.js) implementation for NPCs to navigate corridors.
+*   ✅ **AI Director**: Gemini API integration to generate unique daily layouts and scenarios.
+
+## 🔮 Next Phase: Persistence & Expansion (Sprint 4)
+*   **Goal**: Save state to cloud and expand gameplay loop.
+*   **Todo**:
+    *   [ ] **Inventory Sync**: Save/Load `inventory_items` to Supabase.
+    *   [ ] **Container Upgrades**: Purchase larger bags/carts to carry more tools.
+    *   [ ] **Career Log**: Track solved tickets in `BMETs_log`.
+    *   [ ] **New Devices**: Add 'Defibrillator' and 'Electrosurgical Unit' benches.
 
 ## 🗄️ Database Schema Roadmap
 ### Phase 1: User Data (Current)
@@ -96,7 +102,7 @@
     *   `difficulty` (Enum: easy, medium, high)
     *   `xp` (Int)
 
-### Phase 2: Inventory & Economy (Next)
+### Phase 2: Inventory & Economy (Sprint 4)
 *   `inventory_items`: Tracks parts and tools owned by the player.
     *   `player_id` (UUID, FK)
     *   `item_id` (String, e.g., 'fuse_2a')
