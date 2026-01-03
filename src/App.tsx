@@ -15,6 +15,7 @@ import { InterruptionDialog } from './ui/InterruptionDialog';
 import { InventoryHUD } from './ui/InventoryHUD';
 import { SupplyCabinet } from './ui/SupplyCabinet';
 import { AIDirector } from './game/systems/AIDirector';
+import { CareerDashboard } from './ui/CareerDashboard';
 
 function App() {
   // Game Reference
@@ -25,6 +26,7 @@ function App() {
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
   const [currentWO, setCurrentWO] = useState<any>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const [isCareerDashboardOpen, setIsCareerDashboardOpen] = useState(false);
 
   // Store
   const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, workOrders } = useGameStore();
@@ -119,6 +121,10 @@ function App() {
       setIsSupplyOpen(true);
     };
 
+    const handleOpenCareerDashboard = () => {
+      setIsCareerDashboardOpen(true);
+    };
+
     EventBus.on('open-work-order', handleOpenWO);
     EventBus.on('start-tutorial', handleStartTutorial);
     EventBus.on('tutorial-complete', handleTutorialComplete);
@@ -127,6 +133,7 @@ function App() {
     EventBus.on('open-repair-menu', handleOpenRepairMenu);
     EventBus.on('show-toast', handleShowToast);
     EventBus.on('open-supply-cabinet', handleOpenSupply);
+    EventBus.on('open-career-dashboard', handleOpenCareerDashboard);
 
     return () => {
       EventBus.removeListener('open-work-order', handleOpenWO);
@@ -287,6 +294,11 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Career Dashboard */}
+      {isCareerDashboardOpen && (
+        <CareerDashboard onClose={() => setIsCareerDashboardOpen(false)} />
+      )}
     </div>
   );
 }
