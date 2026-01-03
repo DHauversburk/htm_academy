@@ -44,3 +44,17 @@ export interface Scenario {
     description: string;
     orders: WorkOrder[];
 }
+
+export interface InterruptionChoice {
+    text: string;
+    action: string; // e.g., 'ignore', 'reply_positive', 'delay_task'
+}
+
+export interface Interruption {
+    id: string;
+    type: 'phone' | 'email' | 'alert';
+    title: string;
+    sender: string;
+    body: string;
+    choices: InterruptionChoice[];
+}

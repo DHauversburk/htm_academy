@@ -36,6 +36,10 @@ interface GameState {
     consumeItem: (itemId: string) => boolean; // returns true if successful
     updateBudget: (delta: number) => void;
 
+    // Interruptions
+    activeInterruption: Interruption | null;
+    setActiveInterruption: (interruption: Interruption | null) => void;
+
     saveProfile: () => Promise<void>;
     loadProfile: () => Promise<void>;
 }
@@ -50,6 +54,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     activeOrderId: null,
     budget: 1000,
     inventory: {},
+    activeInterruption: null,
 
     // Actions
     setPlayerName: (name) => set({ playerName: name }),
@@ -58,6 +63,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setAvatarColor: (color) => set({ avatarColor: color }),
     setWorkOrders: (orders) => set({ workOrders: orders }),
     setActiveOrder: (id) => set({ activeOrderId: id }),
+    setActiveInterruption: (interruption) => set({ activeInterruption: interruption }),
 
     addToInventory: (itemId, qty) => set((state) => {
         const current = state.inventory[itemId] || 0;

@@ -8,8 +8,10 @@ import { ProfileSetup } from './ui/ProfileSetup';
 import { WorkOrderList } from './ui/WorkOrderList';
 import { RepairMenu } from './ui/RepairMenu';
 import { VirtualJoystick } from './ui/VirtualJoystick';
+import { InterruptionModal } from './ui/InterruptionModal';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
+import { InterruptionEngine } from './game/systems/InterruptionEngine';
 import { DEFECTS } from './game/data/scenarios/tutorial';
 
 function App() {
@@ -30,6 +32,27 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  useEffect(() => {
+    // Initialize Interruption Engine when game starts
+    if (isSetupComplete) {
+      const game = phaserRef.current?.game;
+      if (game) {
+        const scene = game.scene.getScene('MainGame');
+        if (scene) {
+            const engine = InterruptionEngine.getInstance();
+            engine.init(game, scene);
+            engine.start();
+        }
+      }
+    } else {
+      InterruptionEngine.getInstance().stop();
+    }
+
+    return () => {
+      InterruptionEngine.getInstance().stop();
+    };
+  }, [isSetupComplete]);
 
   useEffect(() => {
     // Listen for Work Order events from Phaser
@@ -167,6 +190,9 @@ function App() {
 
       {/* Profile Setup Wizard */}
       {isSetupOpen && <ProfileSetup />}
+
+      {/* Interruption Modal */}
+      <InterruptionModal />
 
       {/* Work Order Queue (Only show active game) */}
       {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && (
