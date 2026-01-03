@@ -52,6 +52,8 @@ interface GameState {
 
     saveProfile: () => Promise<void>;
     loadProfile: () => Promise<void>;
+    syncInventory: () => Promise<void>;
+    logTicketCompletion: (ticket: WorkOrder, fault: string, xp: number) => Promise<void>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -82,16 +84,113 @@ export const useGameStore = create<GameState>((set, get) => ({
     addWorkOrder: (order: WorkOrder) => set((state) => ({ workOrders: [...state.workOrders, order] })),
     setActiveOrder: (id) => set({ activeOrderId: id }),
 
-    addToInventory: (itemId, qty) => set((state) => {
-        const current = state.inventory[itemId] || 0;
-        return { inventory: { ...state.inventory, [itemId]: current + qty } };
-    }),
+    // Cloud Sync Stats
+    saveProfile: async () => {
+        const { playerName, difficulty, budget, syncInventory } = get();
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // 1. Save Profile Meta
+            const { error } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    username: playerName,
+                    difficulty,
+                    budget
+                });
+            if (error) console.error('Save Profile Error:', error);
+
+            // 2. Save Inventory
+            requestAnimationFrame(() => syncInventory());
+
+        } catch (err) {
+            console.error('Failed to save profile:', err);
+        }
+    },
+
+    loadProfile: async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // 1. Load Profile Meta
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (profile) {
+                set({
+                    playerName: profile.username || '',
+                    difficulty: (profile.difficulty as 'easy' | 'medium' | 'hard') || 'easy',
+                    budget: profile.budget || 1000,
+                });
+            }
+
+            // 2. Load Inventory
+            const { data: invItems } = await supabase
+                .from('inventory_items')
+                .select('item_id, quantity')
+                .eq('player_id', user.id); // Note: Schema uses player_id
+
+            if (invItems) {
+                const loadedInv: Record<string, number> = {};
+                invItems.forEach(row => {
+                    if (row.quantity > 0) loadedInv[row.item_id] = row.quantity;
+                });
+                set({ inventory: loadedInv });
+            }
+
+        } catch (err) {
+            console.error('Error loading profile:', err);
+        }
+    },
+
+    syncInventory: async () => {
+        const { inventory, authMode } = get();
+        if (authMode !== 'authenticated') return;
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const upserts = Object.entries(inventory).map(([itemId, qty]) => ({
+                player_id: user.id, // Using existing schema column 'player_id'
+                item_id: itemId,
+                quantity: qty
+            }));
+
+            if (upserts.length === 0) return;
+
+            const { error } = await supabase
+                .from('inventory_items')
+                .upsert(upserts, { onConflict: 'player_id, item_id' });
+
+            if (error) console.error("Inventory Sync Failed:", error);
+
+        } catch (err) {
+            console.error("Sync Exception:", err);
+        }
+    },
+
+    addToInventory: (itemId, qty) => {
+        set((state) => {
+            const current = state.inventory[itemId] || 0;
+            const newInv = { ...state.inventory, [itemId]: current + qty };
+            return { inventory: newInv };
+        });
+        get().syncInventory();
+    },
 
     consumeItem: (itemId) => {
         const state = get();
         const current = state.inventory[itemId] || 0;
         if (current > 0) {
             set({ inventory: { ...state.inventory, [itemId]: current - 1 } });
+            get().syncInventory();
             return true;
         }
         return false;
@@ -138,51 +237,32 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
     },
 
-    // Cloud Sync Actions
-    saveProfile: async () => {
-        const { playerName, difficulty, budget } = get();
+    logTicketCompletion: async (ticket, fault, xp) => {
+        const { authMode, stats } = get();
+
+        // 1. Update Local Stats
+        set({ stats: { ...stats, xp: stats.xp + xp } });
+
+        // 2. Cloud Sync
+        if (authMode !== 'authenticated') return;
+
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
             const { error } = await supabase
-                .from('profiles')
-                .upsert({
-                    id: user.id,
-                    username: playerName,
-                    difficulty,
-                    budget,
-                    xp: 0, // Default for now
-                    // avatar_color: avatarColor 
+                .from('career_log')
+                .insert({
+                    user_id: user.id,
+                    ticket_id: ticket.id,
+                    device_name: ticket.deviceId, // Using deviceId as name for now, or fetch actual name
+                    fault_found: fault,
+                    xp_earned: xp
                 });
 
-            if (error) console.error('Error saving profile:', error);
+            if (error) console.error("Career Log Failed:", error);
         } catch (err) {
-            console.error('Failed to save profile:', err);
-        }
-    },
-
-    loadProfile: async () => {
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-
-            if (error) throw error;
-            if (data) {
-                set({
-                    playerName: data.username || '',
-                    difficulty: (data.difficulty as 'easy' | 'medium' | 'hard') || 'easy',
-                    budget: data.budget || 1000,
-                });
-            }
-        } catch (err) {
-            console.error('Error loading profile:', err);
+            console.error("Log Exception:", err);
         }
     }
 }));
