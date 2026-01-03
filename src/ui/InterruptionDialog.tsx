@@ -7,11 +7,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const InterruptionDialog = () => {
     const [event, setEvent] = useState<InterruptionEvent | null>(null);
+    const [isRinging, setIsRinging] = useState(false);
     const { addWorkOrder, updateBudget } = useGameStore();
 
     useEffect(() => {
         const handleEvent = (incomingEvent: InterruptionEvent) => {
             setEvent(incomingEvent);
+            if (incomingEvent.type === 'phone') {
+                setIsRinging(true);
+            } else {
+                setIsRinging(false);
+            }
         };
 
         EventBus.on('interruption-triggered', handleEvent);
@@ -19,6 +25,16 @@ export const InterruptionDialog = () => {
             EventBus.removeListener('interruption-triggered', handleEvent);
         };
     }, []);
+
+    const handleAnswer = () => {
+        setIsRinging(false);
+    };
+
+    const handleIgnore = () => {
+        setEvent(null);
+        setIsRinging(false);
+        // Maybe minimal penalty for ignoring call?
+    };
 
     const handleOption = (option: DialogOption) => {
         if (!event) return;
@@ -58,6 +74,45 @@ export const InterruptionDialog = () => {
 
     if (!event) return null;
 
+    // PHONE RINGING UI
+    if (isRinging) {
+        return (
+            <AnimatePresence>
+                <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 100, opacity: 0 }}
+                    className="absolute bottom-10 right-10 bg-black/80 backdrop-blur-md border border-slate-600 p-6 rounded-2xl shadow-2xl text-white flex flex-col items-center gap-4 z-50 w-72"
+                >
+                    <div className="flex flex-col items-center animate-pulse">
+                        {/* Simple Icon */}
+                        <div className="bg-blue-500 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                            📞
+                        </div>
+                        <h3 className="font-bold text-lg">Incoming Call...</h3>
+                        <p className="text-slate-400 text-sm">{event.npcName || 'Unknown Caller'}</p>
+                    </div>
+
+                    <div className="flex gap-4 w-full">
+                        <button
+                            onClick={handleAnswer}
+                            className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg shadow-lg active:scale-95 transition-all"
+                        >
+                            Answer
+                        </button>
+                        <button
+                            onClick={handleIgnore}
+                            className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg shadow-lg active:scale-95 transition-all"
+                        >
+                            Ignore
+                        </button>
+                    </div>
+                </motion.div>
+            </AnimatePresence>
+        );
+    }
+
+    // SCENARIO DIALOG UI (Existing)
     return (
         <AnimatePresence>
             <motion.div
