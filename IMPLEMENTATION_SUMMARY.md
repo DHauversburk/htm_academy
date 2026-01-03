@@ -73,8 +73,9 @@
 *   **Features**:
     *   ✅ **Walking NPCs**: Nurses and Doctors physically walk up to you in the hallway.
     *   ✅ **Interruption UI**: Dynamic dialog system for handling requests.
-    *   ✅ **Consequences**: Accepting "Walk-ins" creates real Emergency Work Orders in your queue.
-    *   **Phone Calls**: Random calls from Customers/Vendors (Next).
+    *   ✅ **Consequences**: Accepting events impacts Budget or Work Queue.
+    *   ✅ **Phone Calls**: "Ringing" UI overlay with Answer/Ignore interactions.
+    *   **Emails**: Admin requests (Planned for Sprint 3).
     *   **Emails**: Admin requests (Planned).
 
 ## 🗄️ Database Schema Roadmap
