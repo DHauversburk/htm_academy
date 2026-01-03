@@ -36,6 +36,9 @@ export const ProfileSetup = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 text-white">
             <div className="absolute inset-0 bg-[url('/assets/grid-pattern.png')] opacity-10 pointer-events-none" />
 
+            {/* Version Tag */}
+            <div className="absolute top-4 left-4 text-xs font-mono text-slate-500 opacity-50">v0.1.5-beta</div>
+
             <motion.div
                 className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
@@ -44,7 +47,7 @@ export const ProfileSetup = () => {
             >
                 {/* Header */}
                 <div className="p-8 pb-0 text-center">
-                    <img src="/logo.svg" alt="HTM Academy" className="w-16 h-16 mx-auto mb-4 drop-shadow-lg" />
+                    <img src="/knight_logo.svg" alt="HTM Academy" className="w-16 h-16 mx-auto mb-4 drop-shadow-lg" />
                     <h1 className="text-2xl font-extrabold tracking-wide">HTM ACADEMY</h1>
                     <p className="text-slate-400 text-sm font-mono mt-2">SYSTEM ACCESS TERMINAL</p>
                 </div>
