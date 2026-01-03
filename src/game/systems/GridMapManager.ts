@@ -25,7 +25,10 @@ export class GridMapManager {
         this.scene = scene;
     }
 
-    createProceduralMap(width: number, height: number) {
+    createProceduralMap(config?: { width: number, height: number, rooms: any[] }) {
+        const width = config?.width || 128;
+        const height = config?.height || 128;
+
         this.generatePlaceholderTextures();
 
         this.map = this.scene.make.tilemap({
@@ -54,9 +57,49 @@ export class GridMapManager {
             this.grid.push(row);
         }
 
-        this.generateHospitalLayout(width, height);
+        if (config && config.rooms) {
+            this.generateFromConfig(config.rooms, width, height);
+        } else {
+            this.generateHospitalLayout(width, height);
+        }
 
         this.map.setCollision(1);
+    }
+
+    private generateFromConfig(rooms: any[], mapWidth: number, mapHeight: number) {
+        this.rooms = [];
+
+        // 1. Place Rooms
+        rooms.forEach((r, i) => {
+            let x = r.x;
+            let y = r.y;
+
+            // If no position, random placement with simple retry
+            if (x === undefined || y === undefined) {
+                let attempts = 0;
+                while (attempts < 50) {
+                    x = Math.floor(Math.random() * (mapWidth - r.w - 4)) + 2;
+                    y = Math.floor(Math.random() * (mapHeight - r.h - 4)) + 2;
+                    // Very basic overlap check: just ensure center isn't 0
+                    if (this.layer.getTileAt(x + Math.floor(r.w / 2), y + Math.floor(r.h / 2))?.index !== 0) {
+                        break;
+                    }
+                    attempts++;
+                }
+            }
+
+            // If we still don't have good coords (rare), just force it
+            if (x === undefined) x = 10;
+            if (y === undefined) y = 10;
+
+            this.createRoom(r.id || `Room_${i}`, x, y, r.w, r.h);
+        });
+
+        // 2. Connect Rooms
+        // Sort by Y then X to make clean corridors ideally, but simple sequential is fine
+        for (let i = 0; i < this.rooms.length - 1; i++) {
+            this.createCorridor(this.rooms[i], this.rooms[i + 1]);
+        }
     }
 
     private generateHospitalLayout(mapWidth: number, mapHeight: number) {

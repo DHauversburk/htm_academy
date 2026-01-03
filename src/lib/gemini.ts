@@ -26,6 +26,71 @@ export interface GeneratedInterruption {
 export const GeminiService = {
     isEnabled,
 
+    async generateDailyShift(difficulty: string): Promise<any | null> {
+        if (!genAI) {
+            // Fallback for when AI is off
+            return this.getFallbackShift(difficulty);
+        }
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const prompt = `
+                Act as a Game Director for a Hospital RPG. Design a "Daily Shift" scenario.
+                Difficulty: ${difficulty}.
+                
+                Generate a pure JSON object (no markdown) with this structure:
+                {
+                    "scenarioTitle": "String (e.g. 'Monday Morning Rush')",
+                    "scenarioDescription": "String (Flavor text)",
+                    "npcMood": "String (e.g. 'Optimistic', 'Irritated')",
+                    "mapConfig": {
+                        "width": 128,
+                        "height": 128,
+                        "flavor": "String",
+                        "rooms": [
+                            { "id": "Workshop", "type": "workshop", "w": 10, "h": 8, "x": 2, "y": 2 },
+                            { "id": "Lobby", "type": "lobby", "w": 12, "h": 10, "x": 60, "y": 110 },
+                            ... (add 5-8 more random rooms like 'ward', 'office', 'storage' with random sizes and logical positions if possible, or leave x/y null for procedural placement)
+                        ]
+                    }
+                }
+                Mask rules: 
+                - Workshop MUST exist.
+                - Lobby MUST exist.
+                - Add a mix of clinical and admin rooms.
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(text);
+        } catch (error) {
+            console.error("Gemini Shift Gen Failed:", error);
+            return this.getFallbackShift(difficulty);
+        }
+    },
+
+    getFallbackShift(difficulty: string) {
+        return {
+            scenarioTitle: "Routine Maintenance",
+            scenarioDescription: "Just another Tuesday. Keep the lights on.",
+            npcMood: "Calm",
+            mapConfig: {
+                width: 128,
+                height: 128,
+                flavor: "Standard",
+                rooms: [
+                    { id: "Workshop", type: "workshop", w: 10, h: 8, x: 2, y: 2 },
+                    { id: "Lobby", type: "lobby", w: 12, h: 10, x: 58, y: 115 },
+                    { id: "ICU", type: "ward", w: 12, h: 12 },
+                    { id: "Cafeteria", type: "storage", w: 10, h: 10 },
+                    { id: "Office_A", type: "office", w: 6, h: 6 },
+                    { id: "Ward_B", type: "ward", w: 8, h: 8 }
+                ]
+            }
+        };
+    },
+
     async generateInterruption(context: string): Promise<GeneratedInterruption | null> {
         if (!genAI) {
             console.warn("Gemini API Key missing. Skipping AI generation.");

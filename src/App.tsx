@@ -14,6 +14,7 @@ import { DEFECTS } from './game/data/scenarios/tutorial';
 import { InterruptionDialog } from './ui/InterruptionDialog';
 import { InventoryHUD } from './ui/InventoryHUD';
 import { SupplyCabinet } from './ui/SupplyCabinet';
+import { AIDirector } from './game/systems/AIDirector';
 
 function App() {
   // Game Reference
@@ -60,19 +61,29 @@ function App() {
       }
     };
 
-    const handleTutorialComplete = () => {
-      // Now we really start the game
-      // Generate the Shift based on difficulty!
-      const newOrders = GameDirector.generateShift(difficulty);
-      setWorkOrders(newOrders);
+    const handleTutorialComplete = async () => {
+      // 1. Generate the Shift Context (AI Director)
+      // Show loading toast?
+      setToast({ message: "AIDirector: Generating Hospital Layout...", type: 'success' }); // Info type hacked as success for now
 
-      if (phaserRef.current?.scene) {
-        const game = phaserRef.current.game;
-        if (game) {
-          game.scene.stop('BenchScene');
-          game.scene.stop('StartScreen'); // Ensure this is definitely gone
-          game.scene.start('MainGame');
+      try {
+        const shiftData = await AIDirector.generateDailyContext(difficulty);
+
+        // 2. Generate Work Orders (could also be AI driven, but using existing logic for now)
+        const newOrders = GameDirector.generateShift(difficulty);
+        setWorkOrders(newOrders);
+
+        if (phaserRef.current?.scene) {
+          const game = phaserRef.current.game;
+          if (game) {
+            game.scene.stop('BenchScene');
+            game.scene.stop('StartScreen');
+            game.scene.start('MainGame', { shift: shiftData });
+          }
         }
+      } catch (err) {
+        console.error("Shift Generation Failed", err);
+        setToast({ message: "Failed to load shift.", type: 'error' });
       }
     };
 

@@ -81,3 +81,26 @@ export interface NPCConfig {
     spriteKey: string;
     dialogue: string[]; // Random pool of opening lines
 }
+
+export interface MapRoomConfig {
+    id: string;
+    type: 'workshop' | 'lobby' | 'ward' | 'office' | 'storage';
+    w: number;
+    h: number;
+    x?: number; // Optional fixed position
+    y?: number;
+}
+
+export interface MapConfig {
+    width: number;
+    height: number;
+    flavor: string; // e.g. "Cramped" or "Spacious"
+    rooms: MapRoomConfig[];
+}
+
+export interface DailyShift {
+    scenarioTitle: string;
+    scenarioDescription: string;
+    mapConfig: MapConfig;
+    npcMood: string;
+}
