@@ -4,12 +4,20 @@ import { useGameStore } from '../store';
 import { GridMapManager } from '../systems/GridMapManager';
 import { InterruptionManager } from '../systems/InterruptionManager';
 import { PathfindingSystem } from '../systems/PathfindingSystem';
-import type { InterruptionEvent } from '../types';
+import type { DailyShift, InterruptionEvent } from '../types';
+
+// Define a type for WASD keys
+type WASDKeys = {
+    W: Phaser.Input.Keyboard.Key;
+    A: Phaser.Input.Keyboard.Key;
+    S: Phaser.Input.Keyboard.Key;
+    D: Phaser.Input.Keyboard.Key;
+};
 
 export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    private wasd!: any;
+    private wasd!: WASDKeys;
     private joystickInput = { x: 0, y: 0 };
 
     private mapManager!: GridMapManager;
@@ -34,9 +42,9 @@ export class MainGame extends Scene {
         });
     }
 
-    private shiftData: any = null;
+    private shiftData: DailyShift | null = null;
 
-    init(data: any) {
+    init(data: { shift: DailyShift }) {
         this.shiftData = data?.shift || null;
         console.log("MainGame Init with Shift Data:", this.shiftData);
     }
@@ -92,6 +100,10 @@ export class MainGame extends Scene {
             // DEBUG
             this.input.keyboard.on('keydown-I', () => {
                 InterruptionManager.triggerRandomInterruption('medium');
+            });
+            this.input.keyboard.on('keydown-F1', (event: KeyboardEvent) => {
+                event.preventDefault();
+                EventBus.emit('open-career-dashboard');
             });
         }
 
@@ -260,8 +272,7 @@ export class MainGame extends Scene {
     // --- NPC System ---
 
     listenForInterruptions() {
-        EventBus.on('spawn-interruption-npc', (eventAny: any) => {
-            const event = eventAny as InterruptionEvent;
+        EventBus.on('spawn-interruption-npc', (event: InterruptionEvent) => {
             this.spawnNPC(event);
         });
     }
