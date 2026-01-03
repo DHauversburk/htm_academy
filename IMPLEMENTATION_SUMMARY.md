@@ -71,10 +71,11 @@
 ### Sprint 2: The "Interruption Engine" (CURRENT)
 *   **Goal**: Simulate the social/admin pressures of a BMET.
 *   **Features**:
-    *   **Phone Calls**: Random calls from Customers/Vendors.
-    *   **Emails**: Admin requests, budget approvals/denials.
-    *   **Dynamic Triggers**: Events triggered by low budget, high error rate, or random timer.
-    *   **ScriptableObject Database**: Architecture for creating content (Dialogue, Options).
+    *   ✅ **Walking NPCs**: Nurses and Doctors physically walk up to you in the hallway.
+    *   ✅ **Interruption UI**: Dynamic dialog system for handling requests.
+    *   ✅ **Consequences**: Accepting "Walk-ins" creates real Emergency Work Orders in your queue.
+    *   **Phone Calls**: Random calls from Customers/Vendors (Next).
+    *   **Emails**: Admin requests (Planned).
 
 ## 🗄️ Database Schema Roadmap
 ### Phase 1: User Data (Current)
