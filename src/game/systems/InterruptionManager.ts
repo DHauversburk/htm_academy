@@ -41,6 +41,11 @@ export class InterruptionManager {
     static triggerRandomInterruption(difficulty: string) {
         const event = this.generateEvent(difficulty);
         console.log("Triggering Interruption:", event);
-        EventBus.emit('interruption-triggered', event);
+
+        if (event.type === 'walk-in') {
+            EventBus.emit('spawn-interruption-npc', event);
+        } else {
+            EventBus.emit('interruption-triggered', event);
+        }
     }
 }

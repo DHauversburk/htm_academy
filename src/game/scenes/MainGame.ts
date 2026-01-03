@@ -2,6 +2,7 @@ import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
 import { useGameStore } from '../store';
 import { InterruptionManager } from '../systems/InterruptionManager';
+import type { InterruptionEvent } from '../types';
 
 export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
@@ -15,6 +16,9 @@ export class MainGame extends Scene {
     private zones: { x: number, name: string, callback: () => void }[] = [];
     private activeZone: string | null = null;
     private promptText!: Phaser.GameObjects.Text;
+
+    // NPC System
+    private npcs: Phaser.Physics.Arcade.Sprite[] = [];
 
     constructor() {
         super('MainGame');
@@ -113,12 +117,47 @@ export class MainGame extends Scene {
             this.joystickInput = data;
         });
 
+        // Interruption Listener
+        this.listenForInterruptions();
+
         // Cleanup
         this.events.on('shutdown', () => {
             EventBus.removeListener('joystick-move');
         });
 
         EventBus.emit('scene-ready', this);
+    }
+
+    listenForInterruptions() {
+        EventBus.on('spawn-interruption-npc', (eventAny: any) => {
+            const event = eventAny as InterruptionEvent;
+            this.spawnNPC(event);
+        });
+    }
+
+    spawnNPC(event: InterruptionEvent) {
+        // 1. Determine spawn side (left or right of player)
+        const spawnX = this.player.x < 1000 ? 2000 : 0; // Spawn far side
+        const targetX = this.player.x + (spawnX > this.player.x ? 100 : -100); // Stop nearby
+
+        // 2. Create Sprite
+        // Use 'sprite_technician' but tinted green/pink for Nurse/Doc
+        const npc = this.physics.add.sprite(spawnX, 450, 'sprite_technician', 0);
+        npc.setScale(2.5);
+        // Random tint for variety: Green (Nurse), Cyan (Surgeon), Pink (Admin)
+        const tints = [0x4ade80, 0x22d3ee, 0xf472b6];
+        npc.setTint(tints[Math.floor(Math.random() * tints.length)]);
+
+        npc.setData('targetX', targetX);
+        npc.setData('event', event); // Store the event to trigger later
+        npc.setData('state', 'walking');
+
+        // 3. Collision
+        npc.setBodySize(32, 32);
+        npc.setOffset(16, 16);
+        this.physics.add.collider(npc, this.player);
+
+        this.npcs.push(npc);
     }
 
     update() {
@@ -157,6 +196,41 @@ export class MainGame extends Scene {
         } else {
             this.promptText.setVisible(false);
         }
+
+        // NPC Logic
+        this.npcs.forEach((npc) => {
+            const npcBody = npc.body as Phaser.Physics.Arcade.Body;
+            if (!npcBody) return;
+
+            const targetX = npc.getData('targetX');
+            const state = npc.getData('state');
+
+            if (state === 'walking') {
+                const distance = Math.abs(npc.x - targetX);
+
+                if (distance < 10) {
+                    // Arrived!
+                    npcBody.setVelocityX(0);
+                    npc.play('idle', true);
+                    npc.setData('state', 'talking');
+
+                    // Trigger the Dialog now!
+                    const event = npc.getData('event');
+                    EventBus.emit('interruption-triggered', event);
+                } else {
+                    // Move towards target
+                    if (npc.x < targetX) {
+                        npcBody.setVelocityX(200);
+                        npc.setFlipX(false);
+                        npc.play('walk', true);
+                    } else {
+                        npcBody.setVelocityX(-200);
+                        npc.setFlipX(true);
+                        npc.play('walk', true);
+                    }
+                }
+            }
+        });
     }
 
     createLocation(x: number, name: string, color: number, callback: () => void) {
