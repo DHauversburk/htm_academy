@@ -1,10 +1,22 @@
 import { Scene } from 'phaser';
 
+export interface Room {
+    id: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    centerX: number;
+    centerY: number;
+}
+
 export class GridMapManager {
     private scene: Scene;
     private map!: Phaser.Tilemaps.Tilemap;
     private tileset!: Phaser.Tilemaps.Tileset;
     private layer!: Phaser.Tilemaps.TilemapLayer;
+
+    private rooms: Room[] = [];
 
     public readonly TILE_SIZE = 32;
 
@@ -13,10 +25,8 @@ export class GridMapManager {
     }
 
     createProceduralMap(width: number, height: number) {
-        // 1. Generate Texture for Tiles (since we have no assets)
         this.generatePlaceholderTextures();
 
-        // 2. Create Tilemap
         this.map = this.scene.make.tilemap({
             tileWidth: this.TILE_SIZE,
             tileHeight: this.TILE_SIZE,
@@ -24,45 +34,90 @@ export class GridMapManager {
             height: height
         });
 
-        // 3. Add Tileset
-        // 'tiles' refers to the key of the texture we generated
         const tileset = this.map.addTilesetImage('tiles', undefined, this.TILE_SIZE, this.TILE_SIZE, 1, 2);
         if (!tileset) throw new Error("Failed to create tileset");
         this.tileset = tileset;
 
-        // 4. Generate Level Data (Walls, Floors)
-        const levelData = [];
-        for (let y = 0; y < height; y++) {
-            const row = [];
-            for (let x = 0; x < width; x++) {
-                // Outer Walls
-                if (x === 0 || x === width - 1 || y === 0 || y === height - 1) {
-                    row.push(1); // Wall ID
-                }
-                // Random internal walls (sparser)
-                else if (Math.random() < 0.1 && x > 5 && y > 5) {
-                    row.push(1);
-                }
-                else {
-                    row.push(0); // Floor ID
-                }
-            }
-            levelData.push(row);
-        }
-
-        // 5. Create Layer
-        // 0 = Floor, 1 = Wall
         this.layer = this.map.createBlankLayer('Ground', this.tileset)!;
 
-        // Fill based on data
-        levelData.forEach((row, y) => {
-            row.forEach((tileId, x) => {
-                this.layer.putTileAt(tileId, x, y);
-            });
-        });
+        // Initialize with Walls
+        this.layer.fill(1); // 1 = Wall
 
-        // 6. Collision
-        this.map.setCollision(1); // Wall is collidable
+        this.generateHospitalLayout(width, height);
+
+        this.map.setCollision(1);
+    }
+
+    private generateHospitalLayout(mapWidth: number, mapHeight: number) {
+        this.rooms = [];
+
+        // 1. Fixed: The Biomed Workshop (Top Left for now)
+        const workshop = this.createRoom('Workshop', 2, 2, 10, 8);
+
+        // 2. Fixed: Lobby / Main Entrance (Center Bottom)
+        const lobby = this.createRoom('Lobby', Math.floor(mapWidth / 2) - 6, mapHeight - 15, 12, 10);
+
+        // 3. Departments (ICU, Cafeteria)
+        this.createRoom('ICU', 25, 5, 12, 12);
+        this.createRoom('Cafeteria', mapWidth - 15, mapHeight - 15, 10, 10);
+
+        // 4. Generate some random filler rooms (Patient Rooms)
+        for (let i = 0; i < 15; i++) {
+            const w = 4 + Math.floor(Math.random() * 4); // 4-8 width
+            const h = 4 + Math.floor(Math.random() * 4); // 4-8 height
+            const x = Math.floor(Math.random() * (mapWidth - w - 4)) + 2;
+            const y = Math.floor(Math.random() * (mapHeight - h - 4)) + 2;
+
+            // Rename to differentiate
+            this.createRoom(`Room_${i}`, x, y, w, h);
+        }
+
+        // 5. Connect Rooms with Corridors (Simple sequential connection)
+        for (let i = 0; i < this.rooms.length - 1; i++) {
+            this.createCorridor(this.rooms[i], this.rooms[i + 1]);
+        }
+    }
+
+    private createRoom(id: string, x: number, y: number, w: number, h: number): Room {
+        // Dig out the floor (0)
+        for (let dy = 0; dy < h; dy++) {
+            for (let dx = 0; dx < w; dx++) {
+                // Ensure bounds
+                if (x + dx < this.map.width && y + dy < this.map.height) {
+                    this.layer.putTileAt(0, x + dx, y + dy);
+                }
+            }
+        }
+
+        const room: Room = {
+            id, x, y, width: w, height: h,
+            centerX: x + Math.floor(w / 2),
+            centerY: y + Math.floor(h / 2)
+        };
+        this.rooms.push(room);
+        return room;
+    }
+
+    private createCorridor(roomA: Room, roomB: Room) {
+        let x = roomA.centerX;
+        let y = roomA.centerY;
+
+        const targetX = roomB.centerX;
+        const targetY = roomB.centerY;
+
+        // Move Horizontally
+        while (x !== targetX) {
+            this.layer.putTileAt(0, x, y);
+            this.layer.putTileAt(0, x, y + 1); // Wide corridor
+            x += (x < targetX) ? 1 : -1;
+        }
+
+        // Move Vertically
+        while (y !== targetY) {
+            this.layer.putTileAt(0, x, y);
+            this.layer.putTileAt(0, x + 1, y); // Wide corridor
+            y += (y < targetY) ? 1 : -1;
+        }
     }
 
     private generatePlaceholderTextures() {
@@ -70,17 +125,13 @@ export class GridMapManager {
 
         const graphics = this.scene.make.graphics({ x: 0, y: 0 });
 
-        // Tile 0: Floor (Light Gray/Blue)
-        graphics.fillStyle(0xf1f5f9); // Slate-100
+        // Tile 0: Floor (Light Gray)
+        graphics.fillStyle(0xf1f5f9);
         graphics.fillRect(0, 0, 32, 32);
 
         // Tile 1: Wall (Dark Blue)
-        graphics.fillStyle(0x334155); // Slate-700
+        graphics.fillStyle(0x334155);
         graphics.fillRect(34, 0, 32, 32);
-        // Note: spacing of 2px for margin/spacing in tileset logic if needed, 
-        // but here we just draw side-by-side. 
-        // Phaser tileset usually expects exact packing. 
-        // Let's stick to 32x32 blocks.
 
         graphics.generateTexture('tiles', 68, 32);
     }
@@ -89,7 +140,16 @@ export class GridMapManager {
         return this.layer;
     }
 
+    public getRoom(id: string): Room | undefined {
+        return this.rooms.find(r => r.id === id);
+    }
+
     public getSpawnPoint(): { x: number, y: number } {
+        // Spawn in the Workshop or Lobby?
+        const workshop = this.getRoom('Workshop');
+        if (workshop) {
+            return this.tileToWorld(workshop.centerX, workshop.centerY);
+        }
         return this.getRandomFloorPosition();
     }
 
@@ -100,16 +160,12 @@ export class GridMapManager {
             const y = Math.floor(Math.random() * this.map.height);
 
             const tile = this.layer.getTileAt(x, y);
-            // Tile index 0 is Floor
             if (tile && tile.index === 0) {
-                return {
-                    x: x * this.TILE_SIZE + this.TILE_SIZE / 2,
-                    y: y * this.TILE_SIZE + this.TILE_SIZE / 2
-                };
+                return this.tileToWorld(x, y);
             }
             attempts++;
         }
-        return { x: 0, y: 0 }; // Fallback
+        return { x: 0, y: 0 };
     }
 
     public tileToWorld(tileX: number, tileY: number) {

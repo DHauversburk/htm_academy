@@ -147,14 +147,22 @@ export class MainGame extends Scene {
             fontFamily: 'Inter', fontSize: '14px', backgroundColor: '#000000', color: '#ffffff', padding: { x: 6, y: 3 }
         }).setVisible(false).setDepth(100);
 
-        // Place Locations randomly
+        // Place Locations in their generated rooms
         this.placeZone('Workshop', 0x3b82f6, () => this.openWorkshop());
         this.placeZone('ICU', 0xef4444, () => this.showToast("ICU: All Systems Normal"));
         this.placeZone('Cafeteria', 0x10b981, () => this.showToast("Cafeteria: Coffee is fresh!"));
     }
 
     placeZone(name: string, color: number, callback: () => void) {
-        const pos = this.mapManager.getRandomFloorPosition();
+        let pos = { x: 0, y: 0 };
+
+        // Try to find specific room first
+        const room = this.mapManager.getRoom(name);
+        if (room) {
+            pos = this.mapManager.tileToWorld(room.centerX, room.centerY);
+        } else {
+            pos = this.mapManager.getRandomFloorPosition();
+        }
 
         // Visual Marker
         this.add.circle(pos.x, pos.y, 16, color, 0.5);
