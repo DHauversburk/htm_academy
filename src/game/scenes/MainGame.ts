@@ -147,10 +147,34 @@ export class MainGame extends Scene {
             fontFamily: 'Inter', fontSize: '14px', backgroundColor: '#000000', color: '#ffffff', padding: { x: 6, y: 3 }
         }).setVisible(false).setDepth(100);
 
-        // Place Locations in their generated rooms
-        this.placeZone('Workshop', 0x3b82f6, () => this.openWorkshop());
+        // 1. Workshop Zones
+        const workshopRoom = this.mapManager.getRoom('Workshop');
+        if (workshopRoom) {
+            // Main Bench
+            const benchPos = this.mapManager.tileToWorld(workshopRoom.centerX, workshopRoom.centerY);
+            this.addZoneAt(benchPos.x, benchPos.y, 'Workbench', 0x3b82f6, () => this.openWorkshop());
+
+            // Supply Cabinet (Offset from center)
+            const cabinetPos = this.mapManager.tileToWorld(workshopRoom.centerX - 2, workshopRoom.centerY - 2);
+            this.addZoneAt(cabinetPos.x, cabinetPos.y, 'Supplies', 0xf59e0b, () => EventBus.emit('open-supply-cabinet'));
+        } else {
+            // Fallback if map gen failed (shouldn't happen with fixed rooms)
+            this.placeZone('Workbench', 0x3b82f6, () => this.openWorkshop());
+        }
+
+        // 2. Hospital Departments
         this.placeZone('ICU', 0xef4444, () => this.showToast("ICU: All Systems Normal"));
         this.placeZone('Cafeteria', 0x10b981, () => this.showToast("Cafeteria: Coffee is fresh!"));
+    }
+
+    addZoneAt(x: number, y: number, name: string, color: number, callback: () => void) {
+        // Visual Marker
+        this.add.circle(x, y, 16, color, 0.5);
+        this.add.text(x, y - 24, name, {
+            fontSize: '12px', color: '#ffffff', backgroundColor: '#00000080'
+        }).setOrigin(0.5);
+
+        this.zones.push({ x, y, name, callback });
     }
 
     placeZone(name: string, color: number, callback: () => void) {
