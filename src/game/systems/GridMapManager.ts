@@ -58,9 +58,10 @@ export class GridMapManager {
             this.grid.push(row);
         }
 
-        if (config && config.rooms) {
+        if (config && config.rooms && config.rooms.length > 0) {
             this.generateFromConfig(config.rooms, width, height);
         } else {
+            console.warn("No suitable room config found. Generating procedural hospital layout.");
             this.generateHospitalLayout(width, height);
         }
 

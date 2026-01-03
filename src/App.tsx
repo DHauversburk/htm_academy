@@ -85,12 +85,25 @@ function App() {
 
       } catch (err) {
         console.error("Shift Generation Failed", err);
-        setToast({ message: "Failed to load shift. Using fallback.", type: 'error' });
+        setToast({ message: "Network Error. Loading Offline Protocol...", type: 'error' });
+
+        // Use Fallback Data immediately to prevent Black Screen
+        const fallbackShift = AIDirector.getCurrentShift() || {
+          scenarioTitle: "Backup System",
+          mapConfig: { width: 128, height: 128, rooms: [] } // GridMapManager will fill this
+        };
+
+        if (phaserRef.current?.scene) {
+          const game = phaserRef.current.game;
+          if (game) {
+            game.scene.stop('BenchScene');
+            game.scene.stop('StartScreen');
+            game.scene.start('MainGame', { shift: fallbackShift });
+          }
+        }
+
         // Ensure we remove the loading overlay even on failure
         setIsSetupOpen(false);
-
-        // Still try to start the game with fallback data if possible (or just let the error toast show)
-        // Ideally we should have a fallback shift here, but for now just unblocking the UI is critical.
       }
     };
 

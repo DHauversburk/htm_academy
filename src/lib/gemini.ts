@@ -63,9 +63,25 @@ export const GeminiService = {
             const result = await model.generateContent(prompt);
             const response = await result.response;
             const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(text);
+            const parsed = JSON.parse(text);
+
+            // Validation & Sanitization
+            // AI often hallucinates small "toy" examples (e.g. 10x10). We must enforce playability.
+            if (!parsed.mapConfig) parsed.mapConfig = {};
+
+            if (!parsed.mapConfig.width || parsed.mapConfig.width < 50) parsed.mapConfig.width = 128;
+            if (!parsed.mapConfig.height || parsed.mapConfig.height < 50) parsed.mapConfig.height = 128;
+
+            // Ensure essential rooms exist if array is empty
+            if (!parsed.mapConfig.rooms || !Array.isArray(parsed.mapConfig.rooms) || parsed.mapConfig.rooms.length < 3) {
+                parsed.mapConfig.rooms = this.getFallbackShift().mapConfig.rooms;
+            }
+
+            return parsed;
         } catch (error) {
             console.error("Gemini Shift Gen Failed:", error);
+            // Return null or fallback?
+            // Returning the fallback directly ensures the game always loads.
             return this.getFallbackShift();
         }
     },
