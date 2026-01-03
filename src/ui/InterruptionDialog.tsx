@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { EventBus } from '../game/EventBus';
 import type { InterruptionEvent, DialogOption } from '../game/types';
+import { useGameStore } from '../game/store';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const InterruptionDialog = () => {
     const [event, setEvent] = useState<InterruptionEvent | null>(null);
+    const { addWorkOrder } = useGameStore();
 
     useEffect(() => {
         const handleEvent = (incomingEvent: InterruptionEvent) => {
@@ -19,10 +21,25 @@ export const InterruptionDialog = () => {
     }, []);
 
     const handleOption = (option: DialogOption) => {
-        // Logic for handling choice
+        if (!event) return;
+
         console.log(`Selected option: ${option.label} (${option.action})`);
 
-        // TODO: Apply consequences here (modify budget, add ticket, etc.)
+        if (option.action === 'accept') {
+            if (event.associatedTicket) {
+                addWorkOrder(event.associatedTicket);
+                // Emit event for App.tsx to show toast
+                EventBus.emit('show-toast', { message: 'New Emergency Work Order Added!', type: 'error' });
+            }
+        }
+        else if (option.action === 'defer') {
+            if (event.associatedTicket) {
+                // Deferring makes it routine priority
+                const deferredTicket = { ...event.associatedTicket, priority: 'routine' as const };
+                addWorkOrder(deferredTicket);
+                EventBus.emit('show-toast', { message: 'Ticket added to backlog.', type: 'success' });
+            }
+        }
 
         // Close dialog
         setEvent(null);

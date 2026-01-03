@@ -1,4 +1,4 @@
-import type { InterruptionEvent, DialogOption } from '../types';
+import type { InterruptionEvent, DialogOption, WorkOrder } from '../types';
 import { EventBus } from '../EventBus';
 
 export class InterruptionManager {
@@ -14,7 +14,19 @@ export class InterruptionManager {
                 options: [
                     { label: 'Panic & Run', action: 'accept', consequence: 'Start Emergency Repair (+50 Stress)' },
                     { label: 'Check Error Code', action: 'defer', consequence: 'Add to queue (Normal Priority)' }
-                ]
+                ],
+                associatedTicket: {
+                    id: `wo-${Date.now()}`,
+                    deviceId: 'defib-001',
+                    reportedIssue: 'Error Code 303: Battery Fail',
+                    actualDefectId: 'defib_battery_dead', // Assumes this exists in DEFECTS or handled
+                    priority: 'emergency',
+                    customer: 'ER - Trauma 1',
+                    dateCreated: new Date().toISOString(),
+                    status: 'open',
+                    isSafetyCheckRequired: true,
+                    type: 'Defibrillator' // Adding type field to match UI usage
+                } as unknown as WorkOrder
             },
             {
                 type: 'phone',

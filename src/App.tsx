@@ -97,6 +97,14 @@ function App() {
       setIsRepairMenuOpen(true);
     };
 
+    const handleShowToast = (data: any) => {
+      if (typeof data === 'string') {
+        setToast({ message: data, type: 'success' });
+      } else {
+        setToast(data); // { message, type }
+      }
+    };
+
     EventBus.on('open-work-order', handleOpenWO);
     EventBus.on('start-setup', handleStartSetup);
     EventBus.on('start-tutorial', handleStartTutorial);
@@ -104,6 +112,7 @@ function App() {
     EventBus.on('ui-closed', handleUiClosed);
     EventBus.on('start-repair', handleStartRepair);
     EventBus.on('open-repair-menu', handleOpenRepairMenu);
+    EventBus.on('show-toast', handleShowToast);
 
     return () => {
       EventBus.removeListener('open-work-order', handleOpenWO);
@@ -113,6 +122,7 @@ function App() {
       EventBus.removeListener('ui-closed', handleUiClosed);
       EventBus.removeListener('start-repair', handleStartRepair);
       EventBus.removeListener('open-repair-menu', handleOpenRepairMenu);
+      EventBus.removeListener('show-toast', handleShowToast);
     };
   }, [difficulty, setWorkOrders, setActiveOrder]);
 

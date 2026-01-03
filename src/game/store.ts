@@ -28,6 +28,7 @@ interface GameState {
     setAuthMode: (mode: 'guest' | 'authenticated') => void;
     setAvatarColor: (color: number) => void;
     setWorkOrders: (orders: WorkOrder[]) => void;
+    addWorkOrder: (order: WorkOrder) => void;
     setActiveOrder: (id: string | null) => void;
     completeSetup: () => void;
 
@@ -57,6 +58,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setAuthMode: (mode) => set({ authMode: mode }),
     setAvatarColor: (color) => set({ avatarColor: color }),
     setWorkOrders: (orders) => set({ workOrders: orders }),
+    addWorkOrder: (order: WorkOrder) => set((state) => ({ workOrders: [...state.workOrders, order] })),
     setActiveOrder: (id) => set({ activeOrderId: id }),
 
     addToInventory: (itemId, qty) => set((state) => {
