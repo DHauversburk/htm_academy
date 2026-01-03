@@ -134,8 +134,9 @@ export class Bench extends Scene {
             .setOrigin(1, 0)
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
-                this.scene.start('MainGame');
+                // event.stopPropagation();
                 EventBus.emit('tutorial-complete');
+                this.add.text(this.scale.width / 2, this.scale.height / 2, "Loading Shift Parameters...", { fontSize: '32px', backgroundColor: '#000' }).setOrigin(0.5);
             });
     }
 
@@ -152,15 +153,14 @@ export class Bench extends Scene {
                 this.instructionText.setColor('#4ade80');
 
                 // Show completion button
-                this.add.text(this.scale.width / 2, this.scale.height - 100, 'COMPLETE TRAINING', {
+                const btn = this.add.text(this.scale.width / 2, this.scale.height - 100, 'COMPLETE TRAINING', {
                     fontFamily: 'Inter', fontSize: '24px', color: '#000000', backgroundColor: '#4ade80', padding: { x: 20, y: 10 }
                 })
                     .setOrigin(0.5)
                     .setInteractive({ useHandCursor: true })
                     .on('pointerdown', () => {
-                        this.scene.start('MainGame');
-                        // Signal App to enable Work Orders now
                         EventBus.emit('tutorial-complete');
+                        btn.disableInteractive().setText("INITIALIZING SHIFT...");
                     });
             }
         }
