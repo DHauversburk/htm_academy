@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EventBus } from '../game/EventBus';
 import type { InterruptionEvent, DialogOption } from '../game/types';
 import { useGameStore } from '../game/store';

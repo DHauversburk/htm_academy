@@ -38,7 +38,7 @@ export class MainGame extends Scene {
         // 1. Map Generation
         this.mapManager = new GridMapManager(this);
         // Small clinic: 128x128
-        this.mapManager.createProceduralMap(128, 128);
+        this.mapManager.createProceduralMap();
         const layer = this.mapManager.getLayer();
 
         // 2. Pathfinding Init

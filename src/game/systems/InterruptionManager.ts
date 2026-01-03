@@ -1,4 +1,4 @@
-import type { InterruptionEvent, DialogOption } from '../types';
+import type { InterruptionEvent } from '../types';
 import { EventBus } from '../EventBus';
 import { GeminiService } from '../../lib/gemini';
 
@@ -18,7 +18,7 @@ export class InterruptionManager {
         }
 
         // 2. Fallback to Static Template
-        const event = this.generateStaticEvent(type, difficulty);
+        const event = this.generateStaticEvent(type);
         this.emitEvent(event);
     }
 
@@ -54,7 +54,7 @@ export class InterruptionManager {
         }
     }
 
-    private static generateStaticEvent(type: 'walk-in' | 'phone', difficulty: string): InterruptionEvent {
+    private static generateStaticEvent(type: 'walk-in' | 'phone'): InterruptionEvent {
         // Fallback templates
         const templates = [
             {

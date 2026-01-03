@@ -1,6 +1,4 @@
 import { GeminiService } from '../../lib/gemini';
-import { useGameStore } from '../store';
-import { EventBus } from '../EventBus';
 import type { DailyShift } from '../types';
 
 export class AIDirector {

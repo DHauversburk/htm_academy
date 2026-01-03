@@ -29,7 +29,7 @@ export const GeminiService = {
     async generateDailyShift(difficulty: string): Promise<any | null> {
         if (!genAI) {
             // Fallback for when AI is off
-            return this.getFallbackShift(difficulty);
+            return this.getFallbackShift();
         }
 
         try {
@@ -66,11 +66,11 @@ export const GeminiService = {
             return JSON.parse(text);
         } catch (error) {
             console.error("Gemini Shift Gen Failed:", error);
-            return this.getFallbackShift(difficulty);
+            return this.getFallbackShift();
         }
     },
 
-    getFallbackShift(difficulty: string) {
+    getFallbackShift() {
         return {
             scenarioTitle: "Routine Maintenance",
             scenarioDescription: "Just another Tuesday. Keep the lights on.",

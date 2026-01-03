@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useGameStore, PARTS_CATALOGUE } from '../game/store';
-import { ContainerType } from '../game/types';
+import type { ContainerType } from '../game/types';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
