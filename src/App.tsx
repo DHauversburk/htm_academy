@@ -12,6 +12,7 @@ import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
 import { InterruptionDialog } from './ui/InterruptionDialog';
+import { InventoryHUD } from './ui/InventoryHUD';
 
 function App() {
   // Game Reference
@@ -199,6 +200,9 @@ function App() {
 
       {/* Interruption Overlay */}
       <InterruptionDialog />
+
+      {/* Inventory HUD (Bottom Left) */}
+      {isSetupComplete && <InventoryHUD />}
 
       {/* Toast Notification */}
       <AnimatePresence>
