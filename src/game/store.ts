@@ -3,11 +3,12 @@ import type { WorkOrder } from './types';
 import { supabase } from '../lib/supabase';
 
 // Basic catalogue for v1
-export const PARTS_CATALOGUE: Record<string, { name: string, cost: number, desc: string }> = {
-    'fuse_5a': { name: '5A Fuse', cost: 5, desc: 'Standard glass fuse' },
-    'power_cord': { name: 'Power Cord (Medical Grade)', cost: 25, desc: 'Grounded AC cable' },
-    'battery_li': { name: 'Li-Ion Battery Pack', cost: 150, desc: 'Main backup battery' },
-    'capacitor_hv': { name: 'HV Capacitor', cost: 45, desc: 'High voltage cap for Defib' }
+export const PARTS_CATALOGUE: Record<string, { name: string, cost: number, desc: string, weight: number }> = {
+    'fuse_5a': { name: '5A Fuse', cost: 5, desc: 'Standard glass fuse', weight: 0.1 },
+    'power_cord': { name: 'Power Cord (Medical Grade)', cost: 25, desc: 'Grounded AC cable', weight: 1.0 },
+    'battery_li': { name: 'Li-Ion Battery Pack', cost: 150, desc: 'Main backup battery', weight: 2.5 },
+    'capacitor_hv': { name: 'HV Capacitor', cost: 45, desc: 'High voltage cap for Defib', weight: 0.5 },
+    'pm_kit_basic': { name: 'PM Kit (Basic)', cost: 50, desc: 'Filters, O-rings, Stickers', weight: 1.5 }
 };
 
 interface GameState {
@@ -18,6 +19,15 @@ interface GameState {
     workOrders: WorkOrder[];
     avatarColor: number;
     activeOrderId: string | null;
+
+    // RPG Stats
+    stats: {
+        level: number;
+        strength: number;
+        speed: number;
+        xp: number;
+    };
+    container: 'hands' | 'fanny_pack' | 'backpack' | 'cart' | 'auto_cart';
 
     // Efficiency / Economy
     budget: number;
@@ -32,10 +42,13 @@ interface GameState {
     setActiveOrder: (id: string | null) => void;
     completeSetup: () => void;
 
-    // Economy Actions
+    // Actions
     addToInventory: (itemId: string, qty: number) => void;
     consumeItem: (itemId: string) => boolean; // returns true if successful
     updateBudget: (delta: number) => void;
+
+    // Getters / Helpers
+    calculateSpeed: () => number;
 
     saveProfile: () => Promise<void>;
     loadProfile: () => Promise<void>;
@@ -51,6 +64,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     activeOrderId: null,
     budget: 1000,
     inventory: {},
+
+    stats: {
+        level: 1,
+        strength: 5, // Base strength
+        speed: 200, // Base pixels per second
+        xp: 0
+    },
+    container: 'hands',
 
     // Actions
     setPlayerName: (name) => set({ playerName: name }),
@@ -77,6 +98,37 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     updateBudget: (delta) => set((state) => ({ budget: state.budget + delta })),
+
+    calculateSpeed: () => {
+        const state = get();
+        // Calculate total weight
+        let totalWeight = 0;
+        Object.entries(state.inventory).forEach(([id, qty]) => {
+            const item = PARTS_CATALOGUE[id];
+            if (item) totalWeight += item.weight * qty;
+        });
+
+        // Capacity Limits
+        const limits = {
+            'hands': 5,
+            'fanny_pack': 15,
+            'backpack': 40,
+            'cart': 100,
+            'auto_cart': 200
+        };
+        const maxLoad = limits[state.container] + state.stats.strength; // Strength bonus
+
+        // Penalty Curve
+        let speed = state.stats.speed;
+        if (totalWeight > maxLoad * 0.75) {
+            // Over 75% capacity -> start slowing down
+            const penaltyRatio = (totalWeight - (maxLoad * 0.75)) / (maxLoad * 0.25);
+            // Max penalty 60% slow
+            speed = speed * (1 - (penaltyRatio * 0.6));
+        }
+
+        return Math.max(50, speed); // Minimum speed 50
+    },
 
     completeSetup: () => {
         set({ isSetupComplete: true });

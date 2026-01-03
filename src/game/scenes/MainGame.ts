@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
 import { useGameStore } from '../store';
+import { GridMapManager } from '../systems/GridMapManager';
 import { InterruptionManager } from '../systems/InterruptionManager';
 import type { InterruptionEvent } from '../types';
 
@@ -8,16 +9,16 @@ export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private wasd!: any;
-    private interactKey!: Phaser.Input.Keyboard.Key;
-
     private joystickInput = { x: 0, y: 0 };
 
-    // Zones
-    private zones: { x: number, name: string, callback: () => void }[] = [];
+    private mapManager!: GridMapManager;
+
+    // Interactions
+    private zones: { x: number, y: number, name: string, callback: () => void }[] = [];
     private activeZone: string | null = null;
     private promptText!: Phaser.GameObjects.Text;
 
-    // NPC System
+    // NPCs
     private npcs: Phaser.Physics.Arcade.Sprite[] = [];
 
     constructor() {
@@ -32,101 +33,178 @@ export class MainGame extends Scene {
     }
 
     create() {
-        // 1. World Bounds (Long Hallway)
-        const worldWidth = 2000;
-        const worldHeight = this.scale.height;
-        this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
+        // 1. Map Generation
+        this.mapManager = new GridMapManager(this);
+        // Small clinic: 128x128
+        this.mapManager.createProceduralMap(128, 128);
+        const layer = this.mapManager.getLayer();
 
-        // 2. Environment "Art"
-        this.add.rectangle(0, 0, worldWidth, 100, 0xe2e8f0).setOrigin(0);
-        this.add.rectangle(0, 100, worldWidth, 400, 0xf8fafc).setOrigin(0);
-        this.add.rectangle(0, 500, worldWidth, worldHeight - 500, 0x94a3b8).setOrigin(0);
-        this.add.rectangle(0, 500, worldWidth, 10, 0x334155).setOrigin(0);
-
-        // 3. Doors / Locations
-        this.createLocation(300, 'Workshop', 0x3b82f6, () => this.openWorkshop());
-        this.createLocation(1000, 'ICU', 0xef4444, () => this.showToast('No active tickets in ICU.'));
-        this.createLocation(1600, 'Cafeteria', 0x10b981, () => this.showToast('Lunch break is at 12:00!'));
-
-        // 4. Player Setup
-        this.player = this.physics.add.sprite(300, 450, 'sprite_technician', 0);
-        this.player.setScale(2.5);
+        // 2. Player Setup
+        const spawn = this.mapManager.getSpawnPoint();
+        this.player = this.physics.add.sprite(spawn.x, spawn.y, 'sprite_technician', 0);
+        this.player.setScale(1.5); // Slightly smaller for top-down
+        this.player.setBodySize(24, 24);
+        this.player.setOffset(20, 32); // Lower body hitbox
         this.player.setCollideWorldBounds(true);
-        this.player.setBodySize(32, 32); // Hitbox adjustment
-        this.player.setOffset(16, 16); // Center the hitbox
 
-        // Apply Selected Tint from Store
+        // Collision with Walls
+        this.physics.add.collider(this.player, layer);
+
+        // Apply Tint
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
 
-        // Animations
-        if (!this.anims.exists('walk')) {
-            this.anims.create({
-                key: 'walk',
-                frames: this.anims.generateFrameNumbers('sprite_technician', { start: 0, end: 3 }),
-                frameRate: 8,
-                repeat: -1
-            });
-        }
-        if (!this.anims.exists('idle')) {
-            this.anims.create({
-                key: 'idle',
-                frames: [{ key: 'sprite_technician', frame: 0 }],
-                frameRate: 20
-            });
-        }
+        // 3. Camera
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        const targetViewWidth = 16 * 32;
+        const zoom = this.scale.width / targetViewWidth;
+        this.cameras.main.setZoom(Math.min(Math.max(zoom, 0.5), 2));
 
-        // Start idle
-        this.player.play('idle');
-
-        // 5. Camera
-        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
-        this.cameras.main.startFollow(this.player, true, 0.05, 0.05);
-
-        // 6. UI Prompt
-        this.promptText = this.add.text(0, 0, 'Press E to Enter', {
-            fontFamily: 'Inter',
-            fontSize: '16px',
-            backgroundColor: '#000000',
-            padding: { x: 8, y: 4 },
-            color: '#ffffff'
-        }).setVisible(false).setScrollFactor(1);
-
-        // 7. Inputs
+        // 4. Input
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
             this.wasd = this.input.keyboard.addKeys('W,A,S,D');
-            this.interactKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
-            // Interaction Listener
-            this.interactKey.on('down', () => {
-                if (this.activeZone) {
-                    const zone = this.zones.find(z => z.name === this.activeZone);
-                    if (zone) zone.callback();
-                }
-            });
-
-            // DEBUG: Trigger Interruption
+            // DEBUG
             this.input.keyboard.on('keydown-I', () => {
                 InterruptionManager.triggerRandomInterruption('medium');
             });
         }
 
-        // Joystick Listener
         EventBus.on('joystick-move', (data: { x: number, y: number }) => {
             this.joystickInput = data;
         });
-
-        // Interruption Listener
-        this.listenForInterruptions();
 
         // Cleanup
         this.events.on('shutdown', () => {
             EventBus.removeListener('joystick-move');
         });
 
+        // 5. Interactions
+        this.createInteractionZones();
+
+        // 6. Interruptions
+        this.listenForInterruptions();
+
         EventBus.emit('scene-ready', this);
     }
+
+    update() {
+        // Player Movement
+        this.handlePlayerMovement();
+
+        // Zone Checking
+        this.checkZones();
+    }
+
+    handlePlayerMovement() {
+        const body = this.player.body as Phaser.Physics.Arcade.Body;
+        if (!body) return;
+
+        // Get Dynamic Speed from Store
+        const moveSpeed = useGameStore.getState().calculateSpeed();
+
+        body.setVelocity(0);
+
+        // Input Vector
+        let dx = 0;
+        let dy = 0;
+
+        // Keyboard
+        if (this.cursors?.left.isDown || this.wasd?.A.isDown) dx = -1;
+        else if (this.cursors?.right.isDown || this.wasd?.D.isDown) dx = 1;
+
+        if (this.cursors?.up.isDown || this.wasd?.W.isDown) dy = -1;
+        else if (this.cursors?.down.isDown || this.wasd?.S.isDown) dy = 1;
+
+        // Joystick Override
+        if (Math.abs(this.joystickInput.x) > 0.1 || Math.abs(this.joystickInput.y) > 0.1) {
+            dx = this.joystickInput.x;
+            dy = this.joystickInput.y;
+        }
+
+        // Normalize & Apply
+        if (dx !== 0 || dy !== 0) {
+            const angle = Math.atan2(dy, dx);
+            const speedX = Math.cos(angle) * moveSpeed;
+            const speedY = Math.sin(angle) * moveSpeed;
+
+            body.setVelocity(speedX, speedY);
+
+            // Animations
+            this.player.play('walk', true);
+            this.player.setFlipX(dx < 0);
+        } else {
+            this.player.play('idle', true);
+        }
+    }
+
+    // --- Interaction System ---
+
+    createInteractionZones() {
+        // UI Prompt
+        this.promptText = this.add.text(0, 0, 'Press E', {
+            fontFamily: 'Inter', fontSize: '14px', backgroundColor: '#000000', color: '#ffffff', padding: { x: 6, y: 3 }
+        }).setVisible(false).setDepth(100);
+
+        // Place Locations randomly
+        this.placeZone('Workshop', 0x3b82f6, () => this.openWorkshop());
+        this.placeZone('ICU', 0xef4444, () => this.showToast("ICU: All Systems Normal"));
+        this.placeZone('Cafeteria', 0x10b981, () => this.showToast("Cafeteria: Coffee is fresh!"));
+    }
+
+    placeZone(name: string, color: number, callback: () => void) {
+        const pos = this.mapManager.getRandomFloorPosition();
+
+        // Visual Marker
+        this.add.circle(pos.x, pos.y, 16, color, 0.5);
+        this.add.text(pos.x, pos.y - 24, name, {
+            fontSize: '12px', color: '#ffffff', backgroundColor: '#00000080'
+        }).setOrigin(0.5);
+
+        this.zones.push({ x: pos.x, y: pos.y, name, callback });
+    }
+
+    checkZones() {
+        const playerX = this.player.x;
+        const playerY = this.player.y;
+        let found = null;
+
+        for (const zone of this.zones) {
+            const dist = Phaser.Math.Distance.Between(playerX, playerY, zone.x, zone.y);
+            if (dist < 40) { // Interaction Radius
+                found = zone.name;
+                break;
+            }
+        }
+
+        this.activeZone = found;
+
+        if (this.activeZone) {
+            this.promptText.setVisible(true);
+            this.promptText.setPosition(this.player.x, this.player.y - 40);
+            this.promptText.setText(`E: ${this.activeZone}`);
+
+            // Interaction Input
+            if (this.input.keyboard?.checkDown(this.input.keyboard.addKey('E'), 500)) {
+                const zone = this.zones.find(z => z.name === this.activeZone);
+                if (zone) zone.callback();
+            }
+        } else {
+            this.promptText.setVisible(false);
+        }
+    }
+
+    openWorkshop() {
+        this.showToast("Accessing Workshop Terminal...");
+        // TODO: Trigger actual workshop logic
+    }
+
+    showToast(msg: string) {
+        EventBus.emit('show-toast', msg);
+    }
+
+    // --- NPC System ---
 
     listenForInterruptions() {
         EventBus.on('spawn-interruption-npc', (eventAny: any) => {
@@ -136,150 +214,15 @@ export class MainGame extends Scene {
     }
 
     spawnNPC(event: InterruptionEvent) {
-        // 1. Determine spawn side (left or right of player)
-        const spawnX = this.player.x < 1000 ? 2000 : 0; // Spawn far side
-        const targetX = this.player.x + (spawnX > this.player.x ? 100 : -100); // Stop nearby
+        // Spawn randomly
+        const pos = this.mapManager.getRandomFloorPosition();
 
-        // 2. Create Sprite
-        // Use 'sprite_technician' but tinted green/pink for Nurse/Doc
-        const npc = this.physics.add.sprite(spawnX, 450, 'sprite_technician', 0);
-        npc.setScale(2.5);
-        // Random tint for variety: Green (Nurse), Cyan (Surgeon), Pink (Admin)
-        const tints = [0x4ade80, 0x22d3ee, 0xf472b6];
-        npc.setTint(tints[Math.floor(Math.random() * tints.length)]);
+        const npc = this.physics.add.sprite(pos.x, pos.y, 'sprite_technician', 0);
+        npc.setTint(0x4ade80); // Nurse Green
+        npc.setScale(1.5);
+        npc.setBodySize(24, 24);
 
-        npc.setData('targetX', targetX);
-        npc.setData('event', event); // Store the event to trigger later
-        npc.setData('state', 'walking');
-
-        // 3. Collision
-        npc.setBodySize(32, 32);
-        npc.setOffset(16, 16);
-        this.physics.add.collider(npc, this.player);
-
+        npc.setData('event', event);
         this.npcs.push(npc);
-    }
-
-    update() {
-        const speed = 300;
-        const body = this.player.body as Phaser.Physics.Arcade.Body;
-
-        if (!body) return;
-
-        // Reset Velocity
-        body.setVelocityX(0);
-
-        // Movement (Keyboard or Joystick)
-        const isLeft = this.cursors.left.isDown || this.wasd.A.isDown || this.joystickInput.x < -0.2;
-        const isRight = this.cursors.right.isDown || this.wasd.D.isDown || this.joystickInput.x > 0.2;
-
-        if (isLeft) {
-            body.setVelocityX(-speed);
-            this.player.setFlipX(true);
-            this.player.play('walk', true);
-        } else if (isRight) {
-            body.setVelocityX(speed);
-            this.player.setFlipX(false);
-            this.player.play('walk', true);
-        } else {
-            this.player.play('idle', true);
-        }
-
-        // Zone Checking
-        this.checkZones();
-
-        // Prompt Positioning
-        if (this.activeZone) {
-            this.promptText.setVisible(true);
-            this.promptText.setPosition(this.player.x - 40, this.player.y - 80);
-            this.promptText.setText(`Press E: ${this.activeZone}`);
-        } else {
-            this.promptText.setVisible(false);
-        }
-
-        // NPC Logic
-        this.npcs.forEach((npc) => {
-            const npcBody = npc.body as Phaser.Physics.Arcade.Body;
-            if (!npcBody) return;
-
-            const targetX = npc.getData('targetX');
-            const state = npc.getData('state');
-
-            if (state === 'walking') {
-                const distance = Math.abs(npc.x - targetX);
-
-                if (distance < 10) {
-                    // Arrived!
-                    npcBody.setVelocityX(0);
-                    npc.play('idle', true);
-                    npc.setData('state', 'talking');
-
-                    // Trigger the Dialog now!
-                    const event = npc.getData('event');
-                    EventBus.emit('interruption-triggered', event);
-                } else {
-                    // Move towards target
-                    if (npc.x < targetX) {
-                        npcBody.setVelocityX(200);
-                        npc.setFlipX(false);
-                        npc.play('walk', true);
-                    } else {
-                        npcBody.setVelocityX(-200);
-                        npc.setFlipX(true);
-                        npc.play('walk', true);
-                    }
-                }
-            }
-        });
-    }
-
-    createLocation(x: number, name: string, color: number, callback: () => void) {
-        // Door Visual
-        const door = this.add.rectangle(x, 350, 120, 200, color);
-        door.setStrokeStyle(4, 0x1e293b);
-
-        // Door Frame
-        this.add.rectangle(x, 350, 130, 210, 0x000000, 0).setStrokeStyle(2, 0xcbd5e1);
-
-        // Label
-        this.add.text(x, 240, name, {
-            fontFamily: 'Inter', fontSize: '18px', color: '#1e293b', align: 'center', fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        // Register Zone logic
-        this.zones.push({ x, name, callback });
-    }
-
-    checkZones() {
-        const playerX = this.player.x;
-        let found = null;
-
-        // Simple distance check
-        for (const zone of this.zones) {
-            if (Math.abs(playerX - zone.x) < 80) { // Within range
-                found = zone.name;
-                break;
-            }
-        }
-
-        this.activeZone = found;
-    }
-
-    openWorkshop() {
-        this.showToast("Accessing Workshop Terminal...");
-    }
-
-    showToast(message: string) {
-        const toast = this.add.text(this.player.x, this.player.y - 120, message, {
-            backgroundColor: '#000000', color: '#ffffff', padding: { x: 10, y: 5 }
-        }).setOrigin(0.5);
-
-        this.tweens.add({
-            targets: toast,
-            y: toast.y - 50,
-            alpha: 0,
-            duration: 2000,
-            onComplete: () => toast.destroy()
-        });
     }
 }

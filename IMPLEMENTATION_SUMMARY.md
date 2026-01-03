@@ -78,6 +78,16 @@
     *   **Emails**: Admin requests (Planned for Sprint 3).
     *   **Emails**: Admin requests (Planned).
 
+### Sprint 3: Map & Movement Overhaul (STARTED)
+*   **Goal**: Shift from side-scroller to top-down RPG View with Grid Map.
+*   **Features**:
+    *   ✅ **Grid System**: Procedural 128x128 tilemap generation.
+    *   ✅ **Top-Down Movement**: X/Y velocity with joystick support.
+    *   ✅ **RPG Stats**: Strength, Speed, Inventory Weight logic.
+    *   **Encumbrance**: Carrying too much slows you down.
+    *   **Containers**: Hands -> Bag -> Cart progression (Data layer implemented).
+    *   **Pathfinding**: NPCs navigating the grid (Next).
+
 ## 🗄️ Database Schema Roadmap
 ### Phase 1: User Data (Current)
 *   `profiles`: Links to Auth.Users. Stores vanity info (Display Name) and Game Settings (Difficulty).

@@ -1,12 +1,23 @@
 export type Priority = 'routine' | 'urgent' | 'emergency';
 export type RiskLevel = 'low' | 'medium' | 'high';
 
+export type ContainerType = 'hands' | 'fanny_pack' | 'backpack' | 'cart' | 'auto_cart';
+
+export interface PlayerStats {
+    level: number;
+    strength: number; // Reduces movement penalty from weight
+    speed: number; // Base movement speed
+    currentXP: number;
+    maxXP: number;
+}
+
 export interface InventoryItem {
     id: string; // e.g., 'fuse_5a'
     name: string;
     description: string;
     cost: number;
     quantity: number;
+    weight: number; // 1 weight unit per item usually, heavier items take more?
 }
 
 export interface Defect {
