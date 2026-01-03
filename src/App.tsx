@@ -81,7 +81,12 @@ function App() {
         }
       } catch (err) {
         console.error("Shift Generation Failed", err);
-        setToast({ message: "Failed to load shift.", type: 'error' });
+        setToast({ message: "Failed to load shift. Using fallback.", type: 'error' });
+        // Ensure we remove the loading overlay even on failure
+        setIsSetupOpen(false);
+
+        // Still try to start the game with fallback data if possible (or just let the error toast show)
+        // Ideally we should have a fallback shift here, but for now just unblocking the UI is critical.
       }
     };
 

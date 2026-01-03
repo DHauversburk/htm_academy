@@ -16,6 +16,7 @@ export const PARTS_CATALOGUE: Record<string, { name: string, cost: number, desc:
 
 interface GameState {
     playerName: string;
+    jobTitle: string;
     difficulty: 'easy' | 'medium' | 'hard';
     authMode: 'guest' | 'authenticated';
     isSetupComplete: boolean;
@@ -44,6 +45,7 @@ interface GameState {
     metrics: PerformanceMetrics;
 
     setPlayerName: (name: string) => void;
+    setJobTitle: (title: string) => void;
     setDifficulty: (level: 'easy' | 'medium' | 'hard') => void;
     setAuthMode: (mode: 'guest' | 'authenticated') => void;
     setAvatarColor: (color: number) => void;
@@ -73,6 +75,7 @@ interface GameState {
 
 export const useGameStore = create<GameState>((set, get) => ({
     playerName: '',
+    jobTitle: 'BMET I',
     difficulty: 'easy',
     authMode: 'guest',
     avatarColor: 0xffffff,
@@ -123,6 +126,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // Actions
     setPlayerName: (name) => set({ playerName: name }),
+    setJobTitle: (title) => set({ jobTitle: title }),
     setDifficulty: (level) => set({ difficulty: level }),
     setAuthMode: (mode) => set({ authMode: mode }),
     setAvatarColor: (color) => set({ avatarColor: color }),
