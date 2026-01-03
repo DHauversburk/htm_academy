@@ -72,6 +72,7 @@ export interface InterruptionEvent {
     urgency: 'low' | 'medium' | 'high' | 'critical';
     options: DialogOption[];
     associatedTicket?: WorkOrder; // If accepted, this ticket is created
+    timestamp?: number;
 }
 
 export interface NPCConfig {

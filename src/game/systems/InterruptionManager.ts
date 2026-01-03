@@ -1,9 +1,61 @@
-import type { InterruptionEvent, DialogOption, WorkOrder } from '../types';
+import type { InterruptionEvent, DialogOption } from '../types';
 import { EventBus } from '../EventBus';
+import { GeminiService } from '../../lib/gemini';
 
 export class InterruptionManager {
-    static generateEvent(difficulty: string): InterruptionEvent {
-        // Simple random generator for now
+    static async triggerRandomInterruption(difficulty: string) {
+        const type = Math.random() > 0.5 ? 'walk-in' : 'phone';
+
+        // 1. Try AI Generation
+        if (GeminiService.isEnabled) {
+            console.log("Generating AI Interruption...");
+            // Await the AI generation
+            const aiEvent = await this.generateAIInterruption(type, difficulty);
+            if (aiEvent) {
+                this.emitEvent(aiEvent);
+                return;
+            }
+        }
+
+        // 2. Fallback to Static Template
+        const event = this.generateStaticEvent(type, difficulty);
+        this.emitEvent(event);
+    }
+
+    private static emitEvent(event: InterruptionEvent) {
+        console.log("Triggering Interruption:", event);
+        if (event.type === 'walk-in') {
+            EventBus.emit('spawn-interruption-npc', event);
+        } else {
+            EventBus.emit('interruption-triggered', event);
+        }
+    }
+
+    private static async generateAIInterruption(type: 'walk-in' | 'phone', difficulty: string): Promise<InterruptionEvent | null> {
+        const context = `Player Difficulty: ${difficulty}. Event Type: ${type}. The player is a Biomed Technician in a busy hospital.`;
+
+        try {
+            const data = await GeminiService.generateInterruption(context);
+            if (!data) return null;
+
+            return {
+                id: crypto.randomUUID(),
+                type,
+                title: data.title,
+                description: data.description,
+                urgency: data.urgency,
+                npcName: data.npcName,
+                options: data.options,
+                timestamp: Date.now()
+            };
+        } catch (e) {
+            console.error(e);
+            return null;
+        }
+    }
+
+    private static generateStaticEvent(type: 'walk-in' | 'phone', difficulty: string): InterruptionEvent {
+        // Fallback templates
         const templates = [
             {
                 type: 'walk-in',
@@ -17,16 +69,12 @@ export class InterruptionManager {
                 ],
                 associatedTicket: {
                     id: `wo-${Date.now()}`,
-                    deviceId: 'defib-001',
-                    reportedIssue: 'Error Code 303: Battery Fail',
-                    actualDefectId: 'defib_battery_dead', // Assumes this exists in DEFECTS or handled
-                    priority: 'emergency',
-                    customer: 'ER - Trauma 1',
-                    dateCreated: new Date().toISOString(),
+                    type: 'Defibrillator',
+                    issue: 'Error Code 303: Battery Fail',
                     status: 'open',
-                    isSafetyCheckRequired: true,
-                    type: 'Defibrillator' // Adding type field to match UI usage
-                } as unknown as WorkOrder
+                    priority: 'emergency',
+                    actualDefectId: 'defib_battery_dead'
+                } as any
             },
             {
                 type: 'phone',
@@ -41,23 +89,15 @@ export class InterruptionManager {
             }
         ];
 
-        // Pick one randomly
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        // Filter by requested type if possible, or just pick random matching type
+        const matching = templates.filter(t => t.type === type);
+        const template = matching.length > 0 ? matching[Math.floor(Math.random() * matching.length)] : templates[0];
 
+        // Explicitly cast to InterruptionEvent to match structure
         return {
             id: crypto.randomUUID(),
+            timestamp: Date.now(),
             ...template
         } as InterruptionEvent;
-    }
-
-    static triggerRandomInterruption(difficulty: string) {
-        const event = this.generateEvent(difficulty);
-        console.log("Triggering Interruption:", event);
-
-        if (event.type === 'walk-in') {
-            EventBus.emit('spawn-interruption-npc', event);
-        } else {
-            EventBus.emit('interruption-triggered', event);
-        }
     }
 }
