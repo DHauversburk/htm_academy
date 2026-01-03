@@ -54,17 +54,21 @@
 
 ## � Development Roadmap (Aligned with Jira)
 
-### Sprint 1: Core Gameplay & Economy (Current Focus)
-*   **Status**: 90% Complete
+### Sprint 1: Core Gameplay & Economy (COMPLETED)
+*   **Status**: 100% Complete
 *   ✅ **Work Order System**: Functional list and details view.
 *   ✅ **Repair Mechanics**: Step-by-step repair logic (Repair Scene).
 *   ✅ **Cloud Save**: Supabase Profiles integration.
 *   ✅ **Budget System**: 
     *   Display remaining monthly budget.
     *   Store `budget` in Supabase profiles (Default: $1000).
-    *   Inventory Items structure defined (but not yet purchasable UI).
+    *   Inventory Items structure defined.
+*   ✅ **UI/UX Polish**:
+    *   **Profile Wizard**: Cohesive glassmorphism step-by-step setup.
+    *   **Mobile Support**: Virtual Joystick and responsive layouts.
+    *   **Bench Accessibility**: Improved hitboxes and visual cable feedback.
 
-### Sprint 2: The "Interruption Engine" (Next Up)
+### Sprint 2: The "Interruption Engine" (CURRENT)
 *   **Goal**: Simulate the social/admin pressures of a BMET.
 *   **Features**:
     *   **Phone Calls**: Random calls from Customers/Vendors.
@@ -81,13 +85,13 @@
     *   `xp` (Int)
 
 ### Phase 2: Inventory & Economy (Next)
-*   `inventory_items`: Tracks parts owned by the player.
+*   `inventory_items`: Tracks parts and tools owned by the player.
     *   `player_id` (UUID, FK)
     *   `item_id` (String, e.g., 'fuse_2a')
     *   `quantity` (Int)
 
 ### Phase 3: Career History
-*   `paramedics_log`: History of all completed tickets.
+*   `BMETs_log`: History of all completed tickets.
     *   `ticket_id` (UUID)
     *   `device_type` (String)
     *   `fault_found` (String)
