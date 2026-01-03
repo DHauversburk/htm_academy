@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { WorkOrder } from './types';
+import type { WorkOrder, Interruption } from './types';
 import { supabase } from '../lib/supabase';
 
 // Basic catalogue for v1
@@ -22,6 +22,7 @@ interface GameState {
     // Efficiency / Economy
     budget: number;
     inventory: Record<string, number>; // itemId -> quantity
+    activeInterruption: Interruption | null;
 
     setPlayerName: (name: string) => void;
     setDifficulty: (level: 'easy' | 'medium' | 'hard') => void;
@@ -35,6 +36,10 @@ interface GameState {
     addToInventory: (itemId: string, qty: number) => void;
     consumeItem: (itemId: string) => boolean; // returns true if successful
     updateBudget: (delta: number) => void;
+
+    // Interruption Actions
+    setActiveInterruption: (interruption: Interruption | null) => void;
+    dismissInterruption: () => void;
 
     saveProfile: () => Promise<void>;
     loadProfile: () => Promise<void>;
@@ -50,6 +55,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     activeOrderId: null,
     budget: 1000,
     inventory: {},
+    activeInterruption: null,
 
     // Actions
     setPlayerName: (name) => set({ playerName: name }),
@@ -75,6 +81,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     updateBudget: (delta) => set((state) => ({ budget: state.budget + delta })),
+
+    // Interruption Actions
+    setActiveInterruption: (interruption) => set({ activeInterruption: interruption }),
+    dismissInterruption: () => set({ activeInterruption: null }),
 
     completeSetup: () => {
         set({ isSetupComplete: true });
