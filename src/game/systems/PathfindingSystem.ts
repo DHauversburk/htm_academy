@@ -1,7 +1,7 @@
 import EasyStar from 'easystarjs';
 
 export class PathfindingSystem {
-    private easystar: js;
+    private easystar: EasyStar.js;
 
     constructor() {
         this.easystar = new EasyStar.js();
