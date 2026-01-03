@@ -29,7 +29,7 @@ export const CareerDashboard = ({ onClose }: CareerDashboardProps) => {
         const hasPrereqs = skill.prerequisites.every(p => stats.unlockedSkills.includes(p));
         const hasXP = stats.xp >= skill.costXP;
 
-        if (hasPrereqs && hasXP && skill.costXP > 0) return 'available';
+        if (hasPrereqs && hasXP) return 'available';
         return 'locked';
     };
 
