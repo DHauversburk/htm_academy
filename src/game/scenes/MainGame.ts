@@ -34,11 +34,29 @@ export class MainGame extends Scene {
         });
     }
 
+    private shiftData: any = null;
+
+    init(data: any) {
+        this.shiftData = data?.shift || null;
+        console.log("MainGame Init with Shift Data:", this.shiftData);
+    }
+
     create() {
+        // Debug Background
+        this.cameras.main.setBackgroundColor('#1e293b'); // Late Slate
+
         // 1. Map Generation
         this.mapManager = new GridMapManager(this);
-        // Small clinic: 128x128
-        this.mapManager.createProceduralMap();
+        // Use provided config or default
+        const mapConfig = this.shiftData?.mapConfig || { width: 64, height: 64 };
+
+        try {
+            this.mapManager.createProceduralMap(mapConfig);
+            console.log("Map Generated Successfully");
+        } catch (e) {
+            console.error("Map Generation Failed:", e);
+        }
+
         const layer = this.mapManager.getLayer();
 
         // 2. Pathfinding Init

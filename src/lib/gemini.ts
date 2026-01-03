@@ -33,7 +33,7 @@ export const GeminiService = {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
             const prompt = `
                 Act as a Game Director for a Hospital RPG. Design a "Daily Shift" scenario.
                 Difficulty: ${difficulty}.
