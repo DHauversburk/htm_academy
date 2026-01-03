@@ -16,7 +16,7 @@ export const PARTS_CATALOGUE: Record<string, { name: string, cost: number, desc:
 
 interface GameState {
     playerName: string;
-    difficulty: 'easy' | 'medium' | 'hard';
+    difficulty: string;
     authMode: 'guest' | 'authenticated';
     isSetupComplete: boolean;
     workOrders: WorkOrder[];
@@ -44,7 +44,7 @@ interface GameState {
     metrics: PerformanceMetrics;
 
     setPlayerName: (name: string) => void;
-    setDifficulty: (level: 'easy' | 'medium' | 'hard') => void;
+    setDifficulty: (level: string) => void;
     setAuthMode: (mode: 'guest' | 'authenticated') => void;
     setAvatarColor: (color: number) => void;
     setWorkOrders: (orders: WorkOrder[]) => void;
@@ -250,7 +250,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         let totalWeight = 0;
         Object.entries(state.inventory).forEach(([id, qty]) => {
             const item = PARTS_CATALOGUE[id];
-            if (item) totalWeight += item.weight * qty;
+            if (item) {
+                totalWeight += item.weight * qty;
+            }
         });
 
         // Capacity Limits

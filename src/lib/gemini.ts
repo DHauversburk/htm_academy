@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { DailyShift } from "../game/types";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -23,13 +24,35 @@ export interface GeneratedInterruption {
     }[];
 }
 
+// Fallback function, moved outside the object to avoid `this` context issues.
+const getFallbackShift = (): DailyShift => {
+    return {
+        scenarioTitle: "Routine Maintenance",
+        scenarioDescription: "Just another Tuesday. Keep the lights on.",
+        npcMood: "Calm",
+        mapConfig: {
+            width: 128,
+            height: 128,
+            flavor: "Standard",
+            rooms: [
+                { id: "Workshop", type: "workshop", w: 10, h: 8, x: 2, y: 2 },
+                { id: "Lobby", type: "lobby", w: 12, h: 10, x: 58, y: 115 },
+                { id: "ICU", type: "ward", w: 12, h: 12 },
+                { id: "Cafeteria", type: "storage", w: 10, h: 10 },
+                { id: "Office_A", type: "office", w: 6, h: 6 },
+                { id: "Ward_B", type: "ward", w: 8, h: 8 }
+            ]
+        }
+    };
+};
+
 export const GeminiService = {
     isEnabled,
 
-    async generateDailyShift(difficulty: string): Promise<any | null> {
+    async generateDailyShift(difficulty: string): Promise<DailyShift> {
         if (!genAI) {
             // Fallback for when AI is off
-            return this.getFallbackShift(difficulty);
+            return getFallbackShift();
         }
 
         try {
@@ -49,7 +72,7 @@ export const GeminiService = {
                         "flavor": "String",
                         "rooms": [
                             { "id": "Workshop", "type": "workshop", "w": 10, "h": 8, "x": 2, "y": 2 },
-                            { "id": "Lobby", "type": "lobby", "w": 12, "h": 10, "x": 60, "y": 110 },
+                            { id: "Lobby", "type": "lobby", "w": 12, "h": 10, "x": 60, "y": 110 },
                             ... (add 5-8 more random rooms like 'ward', 'office', 'storage' with random sizes and logical positions if possible, or leave x/y null for procedural placement)
                         ]
                     }
@@ -63,32 +86,11 @@ export const GeminiService = {
             const result = await model.generateContent(prompt);
             const response = await result.response;
             const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(text);
+            return JSON.parse(text) as DailyShift;
         } catch (error) {
             console.error("Gemini Shift Gen Failed:", error);
-            return this.getFallbackShift(difficulty);
+            return getFallbackShift();
         }
-    },
-
-    getFallbackShift(difficulty: string) {
-        return {
-            scenarioTitle: "Routine Maintenance",
-            scenarioDescription: "Just another Tuesday. Keep the lights on.",
-            npcMood: "Calm",
-            mapConfig: {
-                width: 128,
-                height: 128,
-                flavor: "Standard",
-                rooms: [
-                    { id: "Workshop", type: "workshop", w: 10, h: 8, x: 2, y: 2 },
-                    { id: "Lobby", type: "lobby", w: 12, h: 10, x: 58, y: 115 },
-                    { id: "ICU", type: "ward", w: 12, h: 12 },
-                    { id: "Cafeteria", type: "storage", w: 10, h: 10 },
-                    { id: "Office_A", type: "office", w: 6, h: 6 },
-                    { id: "Ward_B", type: "ward", w: 8, h: 8 }
-                ]
-            }
-        };
     },
 
     async generateInterruption(context: string): Promise<GeneratedInterruption | null> {
