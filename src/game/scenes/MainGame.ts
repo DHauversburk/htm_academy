@@ -125,6 +125,11 @@ export class MainGame extends Scene {
             EventBus.removeListener('joystick-move');
         });
 
+        // Expose for Playwright
+        if (import.meta.env.DEV) {
+            (window as any).InterruptionManager = InterruptionManager;
+        }
+
         EventBus.emit('scene-ready', this);
     }
 
