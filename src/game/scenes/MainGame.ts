@@ -66,6 +66,7 @@ export class MainGame extends Scene {
         // 3. Player Setup
         const spawn = this.mapManager.getSpawnPoint();
         this.player = this.physics.add.sprite(spawn.x, spawn.y, 'sprite_technician', 0);
+        this.player.setDepth(1); // Ensure player renders on top of the map
         this.player.setScale(1.5); // Slightly smaller for top-down
         this.player.setBodySize(24, 24);
         this.player.setOffset(20, 32); // Lower body hitbox
@@ -78,7 +79,11 @@ export class MainGame extends Scene {
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
 
-        // 4. Camera
+        // 4. Camera & World Bounds
+        const { width, height } = this.mapManager.getMapDimensions();
+        this.cameras.main.setBounds(0, 0, width, height);
+        this.physics.world.setBounds(0, 0, width, height);
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         const targetViewWidth = 16 * 32;
         const zoom = this.scale.width / targetViewWidth;
