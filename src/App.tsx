@@ -90,8 +90,13 @@ function App() {
         // Use Fallback Data immediately to prevent Black Screen
         const fallbackShift = AIDirector.getCurrentShift() || {
           scenarioTitle: "Backup System",
-          mapConfig: { width: 128, height: 128, rooms: [] } // GridMapManager will fill this
+          mapConfig: { width: 64, height: 64, rooms: [] }
         };
+
+        // Final validation on the fallback to be safe
+        if (!fallbackShift.mapConfig || fallbackShift.mapConfig.width < 20 || fallbackShift.mapConfig.height < 20) {
+          fallbackShift.mapConfig = { width: 64, height: 64, rooms: [] };
+        }
 
         if (phaserRef.current?.scene) {
           const game = phaserRef.current.game;
