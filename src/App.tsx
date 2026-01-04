@@ -153,6 +153,7 @@ function App() {
       EventBus.removeListener('open-repair-menu', handleOpenRepairMenu);
       EventBus.removeListener('show-toast', handleShowToast);
       EventBus.removeListener('open-supply-cabinet', handleOpenSupply);
+      EventBus.removeListener('open-career-dashboard', handleOpenCareerDashboard);
     };
   }, [difficulty, setWorkOrders, setActiveOrder]);
 
