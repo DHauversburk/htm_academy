@@ -7,18 +7,30 @@ interface CircuitCalibrationProps {
 
 interface Node {
     id: number;
-    status: 'pending' | 'calibrating' | 'success' | 'fail';
+    status: 'pending' | 'calibrating' | 'success';
     value: number; // 0-100
     target: number; // Random 70-90
     speed: number;
 }
 
+const generateNodes = (): Node[] => {
+    const createNode = (id: number, minSpeed: number, maxSpeed: number): Node => ({
+        id,
+        status: 'pending',
+        value: 0,
+        target: Math.floor(Math.random() * 31) + 60, // Target between 60 and 90
+        speed: Math.random() * (maxSpeed - minSpeed) + minSpeed,
+    });
+
+    return [
+        createNode(1, 1.2, 1.8),
+        createNode(2, 1.7, 2.4),
+        createNode(3, 2.2, 2.9),
+    ];
+};
+
 export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationProps) {
-    const [nodes, setNodes] = useState<Node[]>([
-        { id: 1, status: 'pending', value: 0, target: 80, speed: 1.5 },
-        { id: 2, status: 'pending', value: 0, target: 75, speed: 2.0 },
-        { id: 3, status: 'pending', value: 0, target: 85, speed: 2.5 },
-    ]);
+    const [nodes, setNodes] = useState<Node[]>(generateNodes());
     const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
     const requestRef = useRef<number>(0);
 
@@ -56,20 +68,21 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
             setActiveNodeId(id);
         } else if (node.status === 'calibrating') {
             // Stop and Check
+            setActiveNodeId(null);
             const diff = Math.abs(node.value - node.target);
             const isSuccess = diff < 10; // 10% margin
 
-            setNodes(prev => prev.map(n => n.id === id ? { ...n, status: isSuccess ? 'success' : 'fail' } : n));
-            setActiveNodeId(null);
+            if (isSuccess) {
+                const newNodes = nodes.map(n => (n.id === id ? { ...n, status: 'success' as const } : n));
+                setNodes(newNodes);
 
-            // Check if all complete
-            if (isSuccess && nodes.every(n => (n.id === id ? true : n.status === 'success'))) {
-                setTimeout(() => onSuccess(100), 500);
+                if (newNodes.every(n => n.status === 'success')) {
+                    setTimeout(() => onSuccess(100), 500);
+                }
+            } else {
+                // Failure, reset all nodes
+                setNodes(generateNodes());
             }
-        } else if (node.status === 'fail') {
-            // Retry
-            setNodes(prev => prev.map(n => n.id === id ? { ...n, status: 'calibrating', value: 0 } : n));
-            setActiveNodeId(id);
         }
     };
 
@@ -101,10 +114,7 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
                         >
                             {/* Fill */}
                             <div
-                                className={`h-full transition-none ${node.status === 'success' ? 'bg-green-500' :
-                                    node.status === 'fail' ? 'bg-red-500' :
-                                        'bg-blue-500'
-                                    }`}
+                                className={`h-full transition-none ${node.status === 'success' ? 'bg-green-500' : 'bg-blue-500'}`}
                                 style={{ width: `${node.value}%` }}
                             />
 
@@ -114,7 +124,6 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
                                     {node.status === 'pending' && "TAP TO START"}
                                     {node.status === 'calibrating' && `${Math.round(node.value)}%`}
                                     {node.status === 'success' && "LOCKED"}
-                                    {node.status === 'fail' && "RETRY"}
                                 </span>
                             </div>
                         </div>
