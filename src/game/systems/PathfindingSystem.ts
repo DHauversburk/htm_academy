@@ -1,6 +1,7 @@
 import EasyStar from 'easystarjs';
 
 export class PathfindingSystem {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private easystar: any;
 
     constructor() {

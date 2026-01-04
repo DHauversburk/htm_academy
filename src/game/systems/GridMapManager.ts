@@ -25,6 +25,7 @@ export class GridMapManager {
         this.scene = scene;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createProceduralMap(config?: { width: number, height: number, rooms: any[] }) {
         const width = config?.width && config.width > 20 ? config.width : 50;
         const height = config?.height && config.height > 20 ? config.height : 40;
@@ -155,12 +156,12 @@ export class GridMapManager {
 
         // Simple 64x32 Texture (2 tiles side-by-side)
 
-        // Tile 0: Floor (Light Gray/Blue)
-        graphics.fillStyle(0xf1f5f9); // Slate-100
+        // Tile 0: Floor (Slate 800)
+        graphics.fillStyle(0x1e293b);
         graphics.fillRect(0, 0, 32, 32);
 
-        // Tile 1: Wall (Dark Blue)
-        graphics.fillStyle(0x334155); // Slate-700
+        // Tile 1: Wall (Slate 600)
+        graphics.fillStyle(0x475569);
         graphics.fillRect(32, 0, 32, 32);
 
         // Generate with Exact Dimensions

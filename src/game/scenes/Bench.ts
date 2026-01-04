@@ -17,6 +17,7 @@ export class Bench extends Scene {
         super('BenchScene');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     init(data: any) {
         // data.mode can be 'tutorial' or 'repair'
         this.isTutorial = data.mode === 'tutorial';
@@ -217,6 +218,7 @@ export class Bench extends Scene {
             probe.setDepth(100); // Bring to front
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         probe.on('drag', (_pointer: any, dragX: number, dragY: number) => {
             probe.x = dragX;
             probe.y = dragY - 40; // Offset y so finger doesn't hide it!
@@ -227,6 +229,7 @@ export class Bench extends Scene {
             probe.setDepth(10);
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         probe.on('drop', (_pointer: any, target: Phaser.GameObjects.Zone) => {
             probe.x = target.x;
             probe.y = target.y;

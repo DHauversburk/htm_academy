@@ -24,6 +24,7 @@ function App() {
   const [isSupplyOpen, setIsSupplyOpen] = useState(false);
   const [isSetupOpen, setIsSetupOpen] = useState(true);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [currentWO, setCurrentWO] = useState<any>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isCareerDashboardOpen, setIsCareerDashboardOpen] = useState(false);
@@ -40,6 +41,7 @@ function App() {
 
   useEffect(() => {
     // Listen for Work Order events from Phaser
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleOpenWO = (data: any) => {
       setCurrentWO(data);
       setIsWorkOrderOpen(true);
@@ -112,6 +114,7 @@ function App() {
       setActiveOrder(null);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleStartRepair = (data: any) => {
       // Close UI overlays
       setIsWorkOrderOpen(false);
@@ -131,6 +134,7 @@ function App() {
       setIsRepairMenuOpen(true);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleShowToast = (data: any) => {
       if (typeof data === 'string') {
         setToast({ message: data, type: 'success' });
@@ -175,7 +179,7 @@ function App() {
     EventBus.emit('ui-closed');
   };
 
-  const handleRepairComplete = (actionId: string, _notes: string) => {
+  const handleRepairComplete = (actionId: string) => {
     setIsRepairMenuOpen(false);
 
     if (!currentWO) return;
@@ -215,7 +219,7 @@ function App() {
       <PhaserGame ref={phaserRef} />
 
       <div className="absolute top-4 left-4 z-10 pointer-events-none flex items-center gap-3">
-        <img src="/knight_logo.svg" alt="HTM Academy Logo" className="w-10 h-10 drop-shadow-md" />
+        <img src="/knight_logo.png" alt="HTM Academy Logo" className="w-10 h-10 drop-shadow-md" />
         <div>
           <h1 className="text-white font-extrabold text-xl tracking-wide drop-shadow-md leading-none">HTM ACADEMY</h1>
           <p className="text-slate-300 text-xs font-mono tracking-wider drop-shadow-md mt-1">BIOMED SIMULATOR</p>
@@ -328,7 +332,7 @@ function App() {
       {/* Version Badge */}
       {isSetupComplete && (
         <div className="fixed bottom-2 right-2 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-slate-400 font-mono border border-slate-700">
-          v0.1.5
+          v0.1.6
         </div>
       )}
     </div>

@@ -74,6 +74,7 @@ export class InterruptionManager {
                     status: 'open',
                     priority: 'emergency',
                     actualDefectId: 'defib_battery_dead'
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } as any
             },
             {

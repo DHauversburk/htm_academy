@@ -26,6 +26,7 @@ export interface GeneratedInterruption {
 export const GeminiService = {
     isEnabled,
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async generateDailyShift(difficulty: string): Promise<any | null> {
         if (!genAI) {
             // Fallback for when AI is off

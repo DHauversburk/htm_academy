@@ -9,6 +9,7 @@ import type { InterruptionEvent } from '../types';
 export class MainGame extends Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private wasd!: any;
     private joystickInput = { x: 0, y: 0 };
 
@@ -34,16 +35,25 @@ export class MainGame extends Scene {
         });
     }
 
-    private shiftData: any = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private shiftData: any = null; // Stored shift config
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     init(data: any) {
         this.shiftData = data?.shift || null;
         console.log("MainGame Init with Shift Data:", this.shiftData);
     }
 
     create() {
-        // Debug Background
-        this.cameras.main.setBackgroundColor('#1e293b'); // Late Slate
+        // Background (Slate 950)
+        this.cameras.main.setBackgroundColor('#020617');
+
+        // Expose for Debugging
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).game = this.game;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).mainScene = this;
+        // console.log("DEBUG: Game and MainScene exposed to window");
 
         // 1. Map Generation
         this.mapManager = new GridMapManager(this);
@@ -77,6 +87,23 @@ export class MainGame extends Scene {
         // Apply Tint
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
+
+        // CREATE ANIMATIONS (Fixes "Missing animation" warnings)
+        if (!this.anims.exists('walk')) {
+            this.anims.create({
+                key: 'walk',
+                frames: this.anims.generateFrameNumbers('sprite_technician', { start: 0, end: 3 }),
+                frameRate: 8,
+                repeat: -1
+            });
+        }
+        if (!this.anims.exists('idle')) {
+            this.anims.create({
+                key: 'idle',
+                frames: [{ key: 'sprite_technician', frame: 0 }],
+                frameRate: 1
+            });
+        }
 
         // 4. Camera
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -261,6 +288,7 @@ export class MainGame extends Scene {
     // --- NPC System ---
 
     listenForInterruptions() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         EventBus.on('spawn-interruption-npc', (eventAny: any) => {
             const event = eventAny as InterruptionEvent;
             this.spawnNPC(event);
