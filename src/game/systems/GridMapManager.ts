@@ -154,17 +154,36 @@ export class GridMapManager {
 
         const graphics = this.scene.make.graphics({ x: 0, y: 0 });
 
-        // Simple 64x32 Texture (2 tiles side-by-side)
-
-        // Tile 0: Floor (Slate 800)
-        graphics.fillStyle(0x1e293b);
+        // Tile 0: Hospital Floor (White linoleum with subtle grid pattern)
+        graphics.fillStyle(0xf1f5f9, 1); // Light grey-white floor
         graphics.fillRect(0, 0, 32, 32);
 
-        // Tile 1: Wall (Slate 600)
-        graphics.fillStyle(0x475569);
+        // Grid lines
+        graphics.lineStyle(1, 0xdbeafe, 0.5);
+        graphics.strokeRect(0, 0, 32, 32);
+        graphics.lineBetween(16, 0, 16, 32); // Vertical center line
+        graphics.lineBetween(0, 16, 32, 16); // Horizontal center line
+
+        // Subtle speckle pattern
+        for (let i = 0; i < 8; i++) {
+            const x = Math.random() * 32;
+            const y = Math.random() * 32;
+            graphics.fillStyle(0xe2e8f0, 0.3);
+            graphics.fillCircle(x, y, 1);
+        }
+
+        // Tile 1: Wall (Dark blue-grey with depth)
+        graphics.fillStyle(0x334155, 1); // Dark slate
         graphics.fillRect(32, 0, 32, 32);
 
-        // Generate with Exact Dimensions
+        // Top highlight (lighter edge)
+        graphics.fillStyle(0x475569, 1);
+        graphics.fillRect(32, 0, 32, 4);
+
+        // Bottom shadow
+        graphics.fillStyle(0x1e293b, 1);
+        graphics.fillRect(32, 28, 32, 4);
+
         graphics.generateTexture('tiles', 64, 32);
     }
 

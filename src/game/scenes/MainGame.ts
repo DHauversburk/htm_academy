@@ -69,23 +69,52 @@ export class MainGame extends Scene {
         this.pathfinding = new PathfindingSystem();
         this.pathfinding.setGrid(this.mapManager.getCollisionGrid());
 
-        // 3. Player Setup - Simple procedural sprite
+        // 3. Create Professional Character Sprite
         const spawn = this.mapManager.getSpawnPoint();
 
-        // Create sprite texture (coordinates relative to texture, not world)
         const graphics = this.add.graphics();
 
-        // Head (peach colored circle)
-        graphics.fillStyle(0xfca5a5, 1);
-        graphics.fillCircle(16, 10, 7); // Centered at 16, near top
+        // Shadow
+        graphics.fillStyle(0x000000, 0.3);
+        graphics.fillEllipse(16, 28, 20, 10);
 
-        // Body (light blue rectangle for scrubs)
-        graphics.fillStyle(0x60a5fa, 1);
-        graphics.fillRect(8, 16, 16, 16); // Centered horizontally, below head
+        // Legs
+        graphics.fillStyle(0x2563eb, 1);
+        graphics.fillRect(10, 22, 5, 8);
+        graphics.fillRect(17, 22, 5, 8);
 
-        // Direction marker (white triangle pointing up)
-        graphics.fillStyle(0xffffff, 1);
-        graphics.fillTriangle(16, 6, 13, 10, 19, 10);
+        // Lab Coat
+        graphics.fillStyle(0xe0e7ff, 1);
+        graphics.fillRect(8, 14, 16, 12);
+
+        // Arms
+        graphics.fillStyle(0xfbbf24, 1);
+        graphics.fillRect(5, 16, 3, 8);
+        graphics.fillRect(24, 16, 3, 8);
+
+        // Shoulders
+        graphics.fillStyle(0xdbeafe, 1);
+        graphics.fillRect(8, 14, 16, 3);
+
+        // Head
+        graphics.fillStyle(0xfbbf24, 1);
+        graphics.fillCircle(16, 10, 6);
+
+        // Hair
+        graphics.fillStyle(0x78350f, 1);
+        graphics.fillCircle(16, 8, 5);
+
+        // Glasses
+        graphics.lineStyle(1, 0x000000, 0.8);
+        graphics.strokeCircle(13, 10, 2);
+        graphics.strokeCircle(19, 10, 2);
+        graphics.lineBetween(15, 10, 17, 10);
+
+        // Stethoscope (direction indicator)
+        graphics.lineStyle(2, 0x1e293b, 1);
+        graphics.lineBetween(16, 13, 16, 5);
+        graphics.fillStyle(0x334155, 1);
+        graphics.fillCircle(16, 4, 2);
 
         graphics.generateTexture('player', 32, 32);
         graphics.destroy();
@@ -93,9 +122,8 @@ export class MainGame extends Scene {
         this.player = this.physics.add.sprite(spawn.x, spawn.y, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-
-        // Simple circular physics body
-        this.player.body!.setCircle(12);
+        this.player.body!.setCircle(10);
+        this.player.body!.setOffset(6, 6);
 
         // Collision with Walls
         this.physics.add.collider(this.player, layer);
