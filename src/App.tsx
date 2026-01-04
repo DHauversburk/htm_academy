@@ -60,51 +60,29 @@ function App() {
     };
 
     const handleTutorialComplete = async () => {
+      // Show loading toast
+      setToast({ message: "AIDirector: Generating Hospital Layout...", type: 'success' });
+
       // 1. Generate the Shift Context (AI Director)
-      // Show loading toast?
-      setToast({ message: "AIDirector: Generating Hospital Layout...", type: 'success' }); // Info type hacked as success for now
+      // This is now guaranteed to return a valid shift, so no try/catch is needed.
+      const shiftData = await AIDirector.generateDailyContext(difficulty);
 
-      try {
-        const shiftData = await AIDirector.generateDailyContext(difficulty);
+      // 2. Generate Work Orders
+      const newOrders = GameDirector.generateShift(difficulty);
+      setWorkOrders(newOrders);
 
-        // 2. Generate Work Orders (could also be AI driven, but using existing logic for now)
-        const newOrders = GameDirector.generateShift(difficulty);
-        setWorkOrders(newOrders);
-
-        if (phaserRef.current?.scene) {
-          const game = phaserRef.current.game;
-          if (game) {
-            game.scene.stop('BenchScene');
-            game.scene.stop('StartScreen');
-            game.scene.start('MainGame', { shift: shiftData });
-          }
+      // 3. Start the main game scene
+      if (phaserRef.current?.scene) {
+        const game = phaserRef.current.game;
+        if (game) {
+          game.scene.stop('BenchScene');
+          game.scene.stop('StartScreen');
+          game.scene.start('MainGame', { shift: shiftData });
         }
-
-        // Success! Close the setup wizard.
-        setIsSetupOpen(false);
-
-      } catch (err) {
-        console.error("Shift Generation Failed", err);
-        setToast({ message: "Network Error. Loading Offline Protocol...", type: 'error' });
-
-        // Use Fallback Data immediately to prevent Black Screen
-        const fallbackShift = AIDirector.getCurrentShift() || {
-          scenarioTitle: "Backup System",
-          mapConfig: { width: 128, height: 128, rooms: [] } // GridMapManager will fill this
-        };
-
-        if (phaserRef.current?.scene) {
-          const game = phaserRef.current.game;
-          if (game) {
-            game.scene.stop('BenchScene');
-            game.scene.stop('StartScreen');
-            game.scene.start('MainGame', { shift: fallbackShift });
-          }
-        }
-
-        // Ensure we remove the loading overlay even on failure
-        setIsSetupOpen(false);
       }
+
+      // 4. Close the setup wizard
+      setIsSetupOpen(false);
     };
 
     const handleUiClosed = () => {
