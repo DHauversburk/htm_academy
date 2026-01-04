@@ -37,7 +37,7 @@ export const ProfileSetup = () => {
             <div className="absolute inset-0 bg-[url('/assets/grid-pattern.png')] opacity-10 pointer-events-none" />
 
             {/* Version Tag */}
-            <div className="absolute top-4 left-4 text-xs font-mono text-slate-500 opacity-50">v0.1.6</div>
+            <div className="absolute top-4 left-4 text-xs font-mono text-slate-500 opacity-50">v0.1.7</div>
 
             <motion.div
                 className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden"
