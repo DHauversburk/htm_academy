@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 
 import { ProfileSetup } from './ui/ProfileSetup';
-import { WorkOrderList } from './ui/WorkOrderList';
+// import { WorkOrderList } from './ui/WorkOrderList'; // Replaced by WorkbenchTerminal
+import { WorkbenchTerminal } from './ui/WorkbenchTerminal';
 import { RepairMenu } from './ui/RepairMenu';
 import { VirtualJoystick } from './ui/VirtualJoystick';
 import { MobileControls } from './ui/MobileControls';
@@ -28,6 +29,7 @@ function App() {
   const [isWorkOrderOpen, setIsWorkOrderOpen] = useState(false);
   const [isSupplyOpen, setIsSupplyOpen] = useState(false);
   const [isSetupOpen, setIsSetupOpen] = useState(true);
+  const [isWorkbenchOpen, setIsWorkbenchOpen] = useState(false);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [currentWO, setCurrentWO] = useState<any>(null);
@@ -56,9 +58,13 @@ function App() {
     // Listen for Work Order events from Phaser
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleOpenWO = (data: any) => {
+      // Legacy handler, might not be needed if using WorkbenchTerminal exclusively
       setCurrentWO(data);
-      setIsWorkOrderOpen(true);
-      setActiveOrder(data.id);
+      // setIsWorkOrderOpen(true);
+    };
+
+    const handleOpenWorkbench = () => {
+      setIsWorkbenchOpen(true);
     };
 
     const handleStartTutorial = () => {
@@ -165,6 +171,7 @@ function App() {
     };
 
     EventBus.on('open-work-order', handleOpenWO);
+    EventBus.on('open-workbench', handleOpenWorkbench);
     EventBus.on('start-tutorial', handleStartTutorial);
     EventBus.on('tutorial-complete', handleTutorialComplete);
     EventBus.on('ui-closed', handleUiClosed);
@@ -176,6 +183,7 @@ function App() {
 
     return () => {
       EventBus.removeListener('open-work-order', handleOpenWO);
+      EventBus.removeListener('open-workbench', handleOpenWorkbench);
       EventBus.removeListener('start-tutorial', handleStartTutorial);
       EventBus.removeListener('tutorial-complete', handleTutorialComplete);
       EventBus.removeListener('ui-closed', handleUiClosed);
@@ -243,13 +251,16 @@ function App() {
       {isSetupOpen && <ProfileSetup />}
 
       {/* Work Order Queue (Only show active game) */}
-      {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && (
-        <>
-          <WorkOrderList />
-          <div className="lg:hidden block"> {/* Only show joystick on mobile/tablet */}
-            <VirtualJoystick />
-          </div>
-        </>
+      {/* Mobile Joystick */}
+      {isSetupComplete && (
+        <div className="lg:hidden block">
+          <VirtualJoystick />
+        </div>
+      )}
+
+      {/* Workbench Terminal */}
+      {isWorkbenchOpen && (
+        <WorkbenchTerminal onClose={() => setIsWorkbenchOpen(false)} />
       )}
 
       {/* Repair Menu */}
@@ -368,7 +379,7 @@ function App() {
       {/* Version Badge */}
       {isSetupComplete && (
         <div className="fixed bottom-2 right-2 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-slate-400 font-mono border border-slate-700">
-          v0.2.1
+          v0.2.2
         </div>
       )}
     </div>

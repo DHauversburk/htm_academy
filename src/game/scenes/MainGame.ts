@@ -345,7 +345,7 @@ export class MainGame extends Scene {
 
     openWorkshop() {
         this.showToast("Accessing Workshop Terminal...");
-        // TODO: Trigger actual workshop logic
+        EventBus.emit('open-workbench');
     }
 
     showToast(msg: string) {

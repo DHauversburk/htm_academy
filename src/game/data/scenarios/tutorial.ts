@@ -41,7 +41,9 @@ export const TUTORIAL_SCENARIO: Scenario = {
             reportedIssue: 'Device keeps alarming "Check AC Code"',
             actualDefectId: 'frayed_cord',
             status: 'open',
-            isSafetyCheckRequired: true
+            isSafetyCheckRequired: true,
+            reward: 75,
+            difficulty: 1
         }
     ]
 };

@@ -58,6 +58,8 @@ export interface WorkOrder {
     dateCreated: string;
     status: 'open' | 'in_progress' | 'pending_parts' | 'closed';
     isSafetyCheckRequired: boolean; // Must do electrical safety?
+    reward: number; // $ reward for completion
+    difficulty: number; // 1-5 scale
 }
 
 export interface Scenario {

@@ -61,6 +61,23 @@ export class GameDirector {
         // 4. Roll for Priority
         const priority = config.priorities[Math.floor(Math.random() * config.priorities.length)];
 
+        // 5. Calculate Reward & Difficulty
+        let baseReward = 50 + Math.floor(Math.random() * 50); // $50-100 base
+        let diffRating = 1;
+
+        if (priority === 'urgent') {
+            baseReward *= 1.5;
+            diffRating += 1;
+        }
+        if (priority === 'emergency') {
+            baseReward *= 2.5;
+            diffRating += 2;
+        }
+        if (isObscure) {
+            baseReward += 50;
+            diffRating += 1;
+        }
+
         return {
             id: `WO-${new Date().getFullYear()}-${1000 + index}`,
             deviceId: device.id,
@@ -70,7 +87,9 @@ export class GameDirector {
             reportedIssue: reportedIssue,
             actualDefectId: defect.id,
             status: 'open',
-            isSafetyCheckRequired: Math.random() < config.safetyCheckChance
+            isSafetyCheckRequired: Math.random() < config.safetyCheckChance,
+            reward: Math.floor(baseReward),
+            difficulty: diffRating
         };
     }
 
