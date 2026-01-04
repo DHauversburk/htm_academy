@@ -4,6 +4,7 @@ import { useGameStore } from '../store';
 import { GridMapManager } from '../systems/GridMapManager';
 import { InterruptionManager } from '../systems/InterruptionManager';
 import { PathfindingSystem } from '../systems/PathfindingSystem';
+import { MinimapSystem } from '../systems/MinimapSystem';
 import type { InterruptionEvent } from '../types';
 
 export class MainGame extends Scene {
@@ -15,6 +16,7 @@ export class MainGame extends Scene {
 
     private mapManager!: GridMapManager;
     private pathfinding!: PathfindingSystem;
+    private minimap!: MinimapSystem;
 
     // Interactions
     private zones: { x: number, y: number, name: string, callback: () => void }[] = [];
@@ -162,7 +164,11 @@ export class MainGame extends Scene {
         // 6. Interactions
         this.createInteractionZones();
 
-        // 7. Interruptions
+        // 7. Minimap
+        this.minimap = new MinimapSystem(this, this.mapManager);
+        this.minimap.create();
+
+        // 8. Interruptions
         this.listenForInterruptions();
 
         EventBus.emit('scene-ready', this);
@@ -171,6 +177,11 @@ export class MainGame extends Scene {
     update() {
         // Player Movement
         this.handlePlayerMovement();
+
+        // Minimap Update
+        if (this.minimap && this.player) {
+            this.minimap.update(this.player.x, this.player.y);
+        }
 
         // Zone Checking
         this.checkZones();

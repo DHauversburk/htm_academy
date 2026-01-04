@@ -8,6 +8,7 @@ import { ProfileSetup } from './ui/ProfileSetup';
 import { WorkOrderList } from './ui/WorkOrderList';
 import { RepairMenu } from './ui/RepairMenu';
 import { VirtualJoystick } from './ui/VirtualJoystick';
+import { MobileControls } from './ui/MobileControls';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
@@ -255,6 +256,9 @@ function App() {
 
       {/* Inventory HUD (Bottom Left) */}
       {isSetupComplete && <InventoryHUD />}
+
+      {/* Mobile Interact Button */}
+      {isSetupComplete && <MobileControls />}
 
       {/* Toast Notification */}
       <AnimatePresence>
