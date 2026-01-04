@@ -3,6 +3,7 @@ import { EventBus } from '../EventBus';
 import { useGameStore } from '../store';
 import { GridMapManager } from '../systems/GridMapManager';
 import { InterruptionManager } from '../systems/InterruptionManager';
+import { MAP_LEVEL_1 } from '../data/maps';
 import { PathfindingSystem } from '../systems/PathfindingSystem';
 import { MinimapSystem } from '../systems/MinimapSystem';
 import { TutorialSystem } from '../systems/TutorialSystem';
@@ -58,11 +59,9 @@ export class MainGame extends Scene {
 
         // 1. Map Generation
         this.mapManager = new GridMapManager(this);
-        const mapConfig = this.shiftData?.mapConfig || { width: 64, height: 64 };
-
         try {
-            this.mapManager.createProceduralMap(mapConfig);
-            console.log("Map Generated Successfully");
+            this.mapManager.createMapFromAscii(MAP_LEVEL_1);
+            console.log("Map Generated Successfully from ASCII");
         } catch (e) {
             console.error("Map Generation Failed:", e);
         }
@@ -252,23 +251,13 @@ export class MainGame extends Scene {
         }).setVisible(false).setDepth(100);
 
         // 1. Workshop Zones
-        const workshopRoom = this.mapManager.getRoom('Workshop');
-        if (workshopRoom) {
-            // Main Bench - Represented as a workstation icon
-            const benchPos = this.mapManager.tileToWorld(workshopRoom.centerX, workshopRoom.centerY);
-            this.addObjectZone(benchPos.x, benchPos.y, 'Workbench', '🔧', 0x3b82f6, () => this.openWorkshop());
+        const workbenchZones = this.mapManager.getZoneLocations('Workbench');
+        workbenchZones.forEach(zone => {
+            const pos = this.mapManager.tileToWorld(zone.x, zone.y);
+            this.addObjectZone(pos.x, pos.y, 'Workbench', '🔧', 0x3b82f6, () => this.openWorkshop());
+        });
 
-            // Supply Cabinet - Represented as a cabinet icon
-            const cabinetPos = this.mapManager.tileToWorld(workshopRoom.centerX - 2, workshopRoom.centerY - 2);
-            this.addObjectZone(cabinetPos.x, cabinetPos.y, 'Supplies', '📦', 0xf59e0b, () => EventBus.emit('open-supply-cabinet'));
-        } else {
-            // Fallback if map gen failed (shouldn't happen with fixed rooms)
-            this.placeObjectZone('Workbench', '🔧', 0x3b82f6, () => this.openWorkshop());
-        }
-
-        // 2. Hospital Departments
-        this.placeObjectZone('ICU', '🏥', 0xef4444, () => this.showToast("ICU: All Systems Normal"));
-        this.placeObjectZone('Cafeteria', '☕', 0x10b981, () => this.showToast("Cafeteria: Coffee is fresh!"));
+        // The tutorial system now handles the creation of the supply zone
     }
 
     addObjectZone(x: number, y: number, name: string, icon: string, color: number, callback: () => void) {
@@ -297,20 +286,6 @@ export class MainGame extends Scene {
 
         // No animation - keep it simple and professional
         this.zones.push({ x, y, name, callback });
-    }
-
-    placeObjectZone(name: string, icon: string, color: number, callback: () => void) {
-        let pos = { x: 0, y: 0 };
-
-        // Try to find specific room first
-        const room = this.mapManager.getRoom(name);
-        if (room) {
-            pos = this.mapManager.tileToWorld(room.centerX, room.centerY);
-        } else {
-            pos = this.mapManager.getRandomFloorPosition();
-        }
-
-        this.addObjectZone(pos.x, pos.y, name, icon, color, callback);
     }
 
     checkZones() {
@@ -365,13 +340,7 @@ export class MainGame extends Scene {
     async spawnNPC(event: InterruptionEvent) {
         // Spawn randomly... but realistically from an entrance?
         // Let's spawn them at the "Lobby" or "Entrance" room if possible.
-        let spawnPos = { x: 0, y: 0 };
-        const lobby = this.mapManager.getRoom('Lobby');
-        if (lobby) {
-            spawnPos = this.mapManager.tileToWorld(lobby.centerX, lobby.centerY);
-        } else {
-            spawnPos = this.mapManager.getRandomFloorPosition();
-        }
+        const spawnPos = this.mapManager.getRandomFloorPosition();
 
         const npc = this.physics.add.sprite(spawnPos.x, spawnPos.y, 'sprite_technician', 0);
         npc.setTint(0x4ade80); // Nurse Green

@@ -70,6 +70,14 @@ export class TutorialSystem {
     start() {
         this.isActive = true;
         this.currentStepIndex = 0;
+
+        // The tutorial is responsible for creating the supply cabinet zone
+        const supplyZones = (this.scene as any).mapManager.getZoneLocations('Supplies');
+        supplyZones.forEach((zone: any) => {
+            const pos = (this.scene as any).mapManager.tileToWorld(zone.x, zone.y);
+            (this.scene as any).addObjectZone(pos.x, pos.y, 'Supplies', '📦', 0xf59e0b, () => EventBus.emit('open-supply-cabinet'));
+        });
+
         this.showStep(this.currentStepIndex);
         console.log('[Tutorial] Started');
     }
