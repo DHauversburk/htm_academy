@@ -88,12 +88,12 @@ export class MainGame extends Scene {
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
 
-        // CREATE ANIMATIONS (Fixes "Missing animation" warnings)
+        // CREATE ANIMATIONS (using only frames that exist: 0-3)
         if (!this.anims.exists('walk')) {
             this.anims.create({
                 key: 'walk',
                 frames: this.anims.generateFrameNumbers('sprite_technician', { start: 0, end: 3 }),
-                frameRate: 8,
+                frameRate: 10,
                 repeat: -1
             });
         }
@@ -152,14 +152,19 @@ export class MainGame extends Scene {
         this.handleNPCMovement();
     }
 
+
     handlePlayerMovement() {
         const body = this.player.body as Phaser.Physics.Arcade.Body;
         if (!body) return;
 
         // Get Dynamic Speed from Store
-        const moveSpeed = useGameStore.getState().calculateSpeed();
+        const baseSpeed = useGameStore.getState().calculateSpeed();
+        const acceleration = baseSpeed * 12; // Faster acceleration for snappier feel
+        const maxSpeed = baseSpeed * 1.2; // Slightly higher max speed
 
-        body.setVelocity(0);
+        // Add drag for smoother stopping
+        body.setDrag(800);
+        body.setMaxVelocity(maxSpeed);
 
         // Input Vector
         let dx = 0;
@@ -178,18 +183,19 @@ export class MainGame extends Scene {
             dy = this.joystickInput.y;
         }
 
-        // Normalize & Apply
+        // Apply acceleration-based movement
         if (dx !== 0 || dy !== 0) {
             const angle = Math.atan2(dy, dx);
-            const speedX = Math.cos(angle) * moveSpeed;
-            const speedY = Math.sin(angle) * moveSpeed;
+            const accelX = Math.cos(angle) * acceleration;
+            const accelY = Math.sin(angle) * acceleration;
 
-            body.setVelocity(speedX, speedY);
+            body.setAcceleration(accelX, accelY);
 
-            // Animations
+            // Simple animation
             this.player.play('walk', true);
-            this.player.setFlipX(dx < 0);
+            this.player.setFlipX(dx < 0); // Face left when moving left
         } else {
+            body.setAcceleration(0);
             this.player.play('idle', true);
         }
     }
@@ -205,34 +211,62 @@ export class MainGame extends Scene {
         // 1. Workshop Zones
         const workshopRoom = this.mapManager.getRoom('Workshop');
         if (workshopRoom) {
-            // Main Bench
+            // Main Bench - Represented as a workstation icon
             const benchPos = this.mapManager.tileToWorld(workshopRoom.centerX, workshopRoom.centerY);
-            this.addZoneAt(benchPos.x, benchPos.y, 'Workbench', 0x3b82f6, () => this.openWorkshop());
+            this.addObjectZone(benchPos.x, benchPos.y, 'Workbench', '🔧', 0x3b82f6, () => this.openWorkshop());
 
-            // Supply Cabinet (Offset from center)
+            // Supply Cabinet - Represented as a cabinet icon
             const cabinetPos = this.mapManager.tileToWorld(workshopRoom.centerX - 2, workshopRoom.centerY - 2);
-            this.addZoneAt(cabinetPos.x, cabinetPos.y, 'Supplies', 0xf59e0b, () => EventBus.emit('open-supply-cabinet'));
+            this.addObjectZone(cabinetPos.x, cabinetPos.y, 'Supplies', '📦', 0xf59e0b, () => EventBus.emit('open-supply-cabinet'));
         } else {
             // Fallback if map gen failed (shouldn't happen with fixed rooms)
-            this.placeZone('Workbench', 0x3b82f6, () => this.openWorkshop());
+            this.placeObjectZone('Workbench', '🔧', 0x3b82f6, () => this.openWorkshop());
         }
 
         // 2. Hospital Departments
-        this.placeZone('ICU', 0xef4444, () => this.showToast("ICU: All Systems Normal"));
-        this.placeZone('Cafeteria', 0x10b981, () => this.showToast("Cafeteria: Coffee is fresh!"));
+        this.placeObjectZone('ICU', '🏥', 0xef4444, () => this.showToast("ICU: All Systems Normal"));
+        this.placeObjectZone('Cafeteria', '☕', 0x10b981, () => this.showToast("Cafeteria: Coffee is fresh!"));
     }
 
-    addZoneAt(x: number, y: number, name: string, color: number, callback: () => void) {
-        // Visual Marker
-        this.add.circle(x, y, 16, color, 0.5);
-        this.add.text(x, y - 24, name, {
-            fontSize: '12px', color: '#ffffff', backgroundColor: '#00000080'
+    addObjectZone(x: number, y: number, name: string, icon: string, color: number, callback: () => void) {
+        // Create a container for the object
+        const container = this.add.container(x, y);
+
+        // Background rectangle (represents the object)
+        const bg = this.add.rectangle(0, 0, 48, 48, color, 0.8);
+        bg.setStrokeStyle(3, 0xffffff, 0.9);
+        container.add(bg);
+
+        // Icon (emoji) on top
+        const iconText = this.add.text(0, 0, icon, {
+            fontSize: '28px'
         }).setOrigin(0.5);
+        container.add(iconText);
+
+        // Label below
+        const label = this.add.text(0, 32, name, {
+            fontSize: '11px',
+            color: '#ffffff',
+            backgroundColor: '#000000cc',
+            padding: { x: 4, y: 2 }
+        }).setOrigin(0.5);
+        container.add(label);
+
+        // Add subtle pulse animation
+        this.tweens.add({
+            targets: container,
+            scaleX: 1.05,
+            scaleY: 1.05,
+            duration: 1000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
 
         this.zones.push({ x, y, name, callback });
     }
 
-    placeZone(name: string, color: number, callback: () => void) {
+    placeObjectZone(name: string, icon: string, color: number, callback: () => void) {
         let pos = { x: 0, y: 0 };
 
         // Try to find specific room first
@@ -243,7 +277,7 @@ export class MainGame extends Scene {
             pos = this.mapManager.getRandomFloorPosition();
         }
 
-        this.addZoneAt(pos.x, pos.y, name, color, callback);
+        this.addObjectZone(pos.x, pos.y, name, icon, color, callback);
     }
 
     checkZones() {
