@@ -58,6 +58,8 @@ interface GameState {
     addToInventory: (itemId: string, qty: number) => void;
     consumeItem: (itemId: string) => boolean; // returns true if successful
     updateBudget: (delta: number) => void;
+    removeWorkOrder: (orderId: string) => void;
+    clearInventory: () => void;
 
     // Getters / Helpers
     calculateSpeed: () => number;
@@ -247,6 +249,37 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     updateBudget: (delta) => set((state) => ({ budget: state.budget + delta })),
+
+    removeWorkOrder: (orderId) => {
+        set((state) => ({
+            workOrders: state.workOrders.filter(o => o.id !== orderId)
+        }));
+    },
+
+    clearInventory: () => {
+        // 1. Clear Local State
+        set({ inventory: {} });
+
+        // 2. Clear Remote State (fire and forget)
+        const asyncClear = async () => {
+            const { authMode } = get();
+            if (authMode !== 'authenticated') return;
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                const { error } = await supabase
+                    .from('inventory_items')
+                    .delete()
+                    .eq('player_id', user.id);
+
+                if (error) console.error("Remote inventory clear failed:", error);
+            } catch (err) {
+                console.error("Clear inventory exception:", err);
+            }
+        };
+        asyncClear();
+    },
 
     calculateSpeed: () => {
         const state = get();
