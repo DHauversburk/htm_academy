@@ -88,9 +88,16 @@ function App() {
         setToast({ message: "Network Error. Loading Offline Protocol...", type: 'error' });
 
         // Use Fallback Data immediately to prevent Black Screen
-        const fallbackShift = AIDirector.getCurrentShift() || {
+        const fallbackShift = {
           scenarioTitle: "Backup System",
-          mapConfig: { width: 128, height: 128, rooms: [] } // GridMapManager will fill this
+          mapConfig: {
+            width: 64,
+            height: 64,
+            rooms: [
+              { id: "Workshop", type: "workshop", w: 10, h: 8, x: 2, y: 2 },
+              { id: "Lobby", type: "lobby", w: 12, h: 10, x: 30, y: 50 },
+            ]
+          }
         };
 
         if (phaserRef.current?.scene) {
