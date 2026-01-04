@@ -9,6 +9,8 @@ import { WorkOrderList } from './ui/WorkOrderList';
 import { RepairMenu } from './ui/RepairMenu';
 import { VirtualJoystick } from './ui/VirtualJoystick';
 import { MobileControls } from './ui/MobileControls';
+import { FPSCounter } from './ui/FPSCounter';
+import { SettingsPanel } from './ui/SettingsPanel';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
@@ -29,6 +31,7 @@ function App() {
   const [currentWO, setCurrentWO] = useState<any>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isCareerDashboardOpen, setIsCareerDashboardOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Store
   const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, workOrders } = useGameStore();
@@ -259,6 +262,23 @@ function App() {
 
       {/* Mobile Interact Button */}
       {isSetupComplete && <MobileControls />}
+
+      {/* FPS Counter */}
+      {isSetupComplete && <FPSCounter />}
+
+      {/* Settings Panel */}
+      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
+      {/* Settings Button (Top Left) */}
+      {isSetupComplete && (
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="fixed top-4 left-4 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm p-3 rounded-lg border border-slate-600 transition-all z-50"
+          title="Settings"
+        >
+          <span className="text-xl">⚙️</span>
+        </button>
+      )}
 
       {/* Toast Notification */}
       <AnimatePresence>

@@ -63,24 +63,35 @@ export const VirtualJoystick = () => {
     };
 
     return (
-        <div className="fixed bottom-8 left-8 w-32 h-32 z-40 touch-none select-none">
+        <div className="fixed bottom-8 left-8 w-40 h-40 z-40 touch-none select-none md:w-32 md:h-32">
             <div
                 ref={containerRef}
-                className="w-full h-full rounded-full border-2 border-slate-500/30 bg-slate-900/40 backdrop-blur-sm relative"
+                className="w-full h-full rounded-full border-4 border-blue-500/30 bg-slate-900/60 backdrop-blur-md relative shadow-2xl"
                 onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
                 onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY)}
                 onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
                 onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY)}
             >
+                {/* Crosshair guides */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-1 h-full bg-slate-600/20" />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="h-1 w-full bg-slate-600/20" />
+                </div>
+
+                {/* Knob */}
                 <div
                     ref={knobRef}
-                    className="absolute w-12 h-12 bg-blue-500/80 rounded-full shadow-lg pointer-events-none transition-transform duration-75"
+                    className={`absolute w-16 h-16 md:w-12 md:h-12 rounded-full shadow-2xl pointer-events-none transition-all duration-75 ${active ? 'bg-blue-500 scale-110' : 'bg-blue-500/80 scale-100'
+                        }`}
                     style={{
                         left: '50%',
                         top: '50%',
-                        marginTop: '-1.5rem',
-                        marginLeft: '-1.5rem',
-                        transform: `translate(${position.x}px, ${position.y}px)`
+                        marginTop: '-2rem',
+                        marginLeft: '-2rem',
+                        transform: `translate(${position.x}px, ${position.y}px)`,
+                        border: '3px solid rgba(255, 255, 255, 0.3)'
                     }}
                 />
             </div>
