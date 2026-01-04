@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 
 import { ProfileSetup } from './ui/ProfileSetup';
-// import { WorkOrderList } from './ui/WorkOrderList'; // Replaced by WorkbenchTerminal
+import { WorkOrderList } from './ui/WorkOrderList'; // Replaced by WorkbenchTerminal
 import { WorkbenchTerminal } from './ui/WorkbenchTerminal';
 import { RepairMenu } from './ui/RepairMenu';
 import { VirtualJoystick } from './ui/VirtualJoystick';
@@ -251,11 +251,13 @@ function App() {
       {isSetupOpen && <ProfileSetup />}
 
       {/* Work Order Queue (Only show active game) */}
-      {/* Mobile Joystick */}
-      {isSetupComplete && (
-        <div className="lg:hidden block">
-          <VirtualJoystick />
-        </div>
+      {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && (
+        <>
+          <WorkOrderList />
+          <div className="lg:hidden block"> {/* Only show joystick on mobile/tablet */}
+            <VirtualJoystick />
+          </div>
+        </>
       )}
 
       {/* Workbench Terminal */}
