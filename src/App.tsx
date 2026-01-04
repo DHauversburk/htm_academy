@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 
 import { ProfileSetup } from './ui/ProfileSetup';
-// import { WorkOrderList } from './ui/WorkOrderList'; // Replaced by WorkbenchTerminal
 import { WorkbenchTerminal } from './ui/WorkbenchTerminal';
 import { RepairMenu } from './ui/RepairMenu';
 import { VirtualJoystick } from './ui/VirtualJoystick';
