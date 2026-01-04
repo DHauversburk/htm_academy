@@ -14,12 +14,16 @@ interface Node {
     speed: number;
 }
 
+const createInitialNodes = (): Node[] => {
+    return [
+        { id: 1, status: 'pending', value: 0, target: Math.floor(Math.random() * 21) + 70, speed: 1.5 },
+        { id: 2, status: 'pending', value: 0, target: Math.floor(Math.random() * 21) + 70, speed: 2.0 },
+        { id: 3, status: 'pending', value: 0, target: Math.floor(Math.random() * 21) + 70, speed: 2.5 },
+    ];
+};
+
 export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationProps) {
-    const [nodes, setNodes] = useState<Node[]>([
-        { id: 1, status: 'pending', value: 0, target: 80, speed: 1.5 },
-        { id: 2, status: 'pending', value: 0, target: 75, speed: 2.0 },
-        { id: 3, status: 'pending', value: 0, target: 85, speed: 2.5 },
-    ]);
+    const [nodes, setNodes] = useState<Node[]>(createInitialNodes());
     const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
     const requestRef = useRef<number>();
 
@@ -68,9 +72,9 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
                 setTimeout(() => onSuccess(100), 500);
             }
         } else if (node.status === 'fail') {
-            // Retry
-            setNodes(prev => prev.map(n => n.id === id ? { ...n, status: 'calibrating', value: 0 } : n));
-            setActiveNodeId(id);
+            // Retry - this now resets the entire game
+            setNodes(createInitialNodes());
+            setActiveNodeId(null);
         }
     };
 
