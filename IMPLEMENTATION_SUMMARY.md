@@ -1,5 +1,27 @@
 # HTM Academy - Implementation Status Report
 
+# HTM Academy - Implementation Status Report
+
+## Current Status (v0.2.4)
+- **Workbench Terminal**: Functional. Displays rich ticket details, locations, and device types.
+- **Career System**: Implemented BMET I, II, III tiers.
+  - **BMET I**: Small Clinic (Easy, PM focus).
+  - **BMET II**: Micro-Hospital (Medium).
+  - **BMET III**: Medical Center (Hard).
+- **Game Director**: Generates tickets based on career tier (PM vs CM logic).
+- **Data Reality**: Expanded database with 5+ devices and real defects.
+- **Map Design**: Created `MAP_DESIGN.md` with ASCII layouts for future implementation.
+
+## Recent Changes
+- **v0.2.4**: Updated Profile Setup to use BMET I/II/III roles. Tuned Director difficulty.
+- **v0.2.3**: Added `ticketType` (PM/CM) and granular location logic.
+- **v0.2.2**: Launched Workbench Terminal UI.
+
+## Next Steps
+- [ ] Implement ASCII Map Loader to use the layouts in `MAP_DESIGN.md`.
+- [ ] Add "Inventory" system to buy parts for repairs.
+- [ ] Expand the "Micro-Hospital" map.
+
 ## 🚀 Core Systems Completed
 
 ### 1. **Onboarding & Profile System**
