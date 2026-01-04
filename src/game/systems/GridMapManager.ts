@@ -191,6 +191,14 @@ export class GridMapManager {
         return this.layer;
     }
 
+    public getMapPixelWidth(): number {
+        return this.map.widthInPixels;
+    }
+
+    public getMapPixelHeight(): number {
+        return this.map.heightInPixels;
+    }
+
     public getRoom(id: string): Room | undefined {
         return this.rooms.find(r => r.id === id);
     }
