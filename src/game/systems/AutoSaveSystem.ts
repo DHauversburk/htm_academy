@@ -1,4 +1,5 @@
-import { useGameStore } from '../game/store';
+import { useGameStore } from '../store';
+import type { Achievement, PerformanceMetrics } from '../data/achievements';
 
 const AUTO_SAVE_KEY = 'htm_academy_autosave';
 const AUTO_SAVE_INTERVAL = 60000; // 1 minute
@@ -6,10 +7,14 @@ const AUTO_SAVE_INTERVAL = 60000; // 1 minute
 export interface SaveData {
     timestamp: number;
     playerName: string;
+    jobTitle: string;
     inventory: Record<string, number>;
     currency: number;
     xp: number;
     level: number;
+    unlockedSkills: string[];
+    achievements: Record<string, Achievement>;
+    metrics: PerformanceMetrics;
     currentDay: number;
     totalPlayTime: number;
 }
@@ -18,9 +23,16 @@ class AutoSaveManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private intervalId: any = null;
     private startTime: number = Date.now();
+    private accumulatedTime: number = 0;
 
     start() {
         if (this.intervalId) return;
+
+        // Load existing play time
+        const saveData = this.load();
+        if (saveData) {
+            this.accumulatedTime = saveData.totalPlayTime || 0;
+        }
 
         this.startTime = Date.now();
         this.intervalId = setInterval(() => {
@@ -53,12 +65,16 @@ class AutoSaveManager {
             const saveData: SaveData = {
                 timestamp: Date.now(),
                 playerName: state.playerName,
+                jobTitle: state.jobTitle,
                 inventory: state.inventory,
                 currency: state.budget,
                 xp: state.stats.xp,
                 level: state.stats.level,
+                unlockedSkills: state.stats.unlockedSkills,
+                achievements: state.achievements,
+                metrics: state.metrics,
                 currentDay: 1, // TODO: Track actual days
-                totalPlayTime: Date.now() - this.startTime,
+                totalPlayTime: this.accumulatedTime + (Date.now() - this.startTime),
             };
 
             localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(saveData));
@@ -98,6 +114,30 @@ class AutoSaveManager {
     getLastSaveTime(): Date | null {
         const save = this.load();
         return save ? new Date(save.timestamp) : null;
+    }
+
+    loadInGame() {
+        const data = this.load();
+        if (!data) return false;
+
+        useGameStore.setState({
+            playerName: data.playerName,
+            jobTitle: data.jobTitle,
+            inventory: data.inventory,
+            budget: data.currency,
+            stats: {
+                ...useGameStore.getState().stats,
+                level: data.level,
+                xp: data.xp,
+                unlockedSkills: data.unlockedSkills,
+            },
+            achievements: data.achievements,
+            metrics: data.metrics,
+            isSetupComplete: true,
+        });
+
+        console.log('[AutoSave] Game state loaded into store.');
+        return true;
     }
 }
 

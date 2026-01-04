@@ -27,13 +27,13 @@ function App() {
   const phaserRef = useRef<IRefPhaserGame>(null);
   const [isWorkOrderOpen, setIsWorkOrderOpen] = useState(false);
   const [isSupplyOpen, setIsSupplyOpen] = useState(false);
-  const [isSetupOpen, setIsSetupOpen] = useState(true);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [currentWO, setCurrentWO] = useState<any>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isCareerDashboardOpen, setIsCareerDashboardOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLoadPromptOpen, setIsLoadPromptOpen] = useState(false);
 
   // Store
   const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, workOrders } = useGameStore();
@@ -42,14 +42,21 @@ function App() {
     // Start Auto-Save
     autoSave.start();
 
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
+    // Check for auto-save on mount
+    if (autoSave.hasSave()) {
+        setIsLoadPromptOpen(true);
     }
 
     return () => {
       autoSave.stop();
     };
+  }, []);
+
+  useEffect(() => {
+    if (toast) {
+        const timer = setTimeout(() => setToast(null), 3000);
+        return () => clearTimeout(timer);
+    }
   }, [toast]);
 
   useEffect(() => {
@@ -62,8 +69,6 @@ function App() {
     };
 
     const handleStartTutorial = () => {
-      setIsSetupOpen(false);
-
       // Start Orientation (Tutorial Mode)
       if (phaserRef.current?.scene) {
         const game = phaserRef.current.game;
@@ -94,10 +99,6 @@ function App() {
             game.scene.start('MainGame', { shift: shiftData });
           }
         }
-
-        // Success! Close the setup wizard.
-        setIsSetupOpen(false);
-
       } catch (err) {
         console.error("Shift Generation Failed", err);
         setToast({ message: "Network Error. Loading Offline Protocol...", type: 'error' });
@@ -116,9 +117,6 @@ function App() {
             game.scene.start('MainGame', { shift: fallbackShift });
           }
         }
-
-        // Ensure we remove the loading overlay even on failure
-        setIsSetupOpen(false);
       }
     };
 
@@ -239,17 +237,23 @@ function App() {
         </div>
       </div>
 
-      {/* Profile Setup Wizard */}
-      {isSetupOpen && <ProfileSetup />}
-
-      {/* Work Order Queue (Only show active game) */}
-      {isSetupComplete && !isWorkOrderOpen && !isRepairMenuOpen && (
-        <>
-          <WorkOrderList />
-          <div className="lg:hidden block"> {/* Only show joystick on mobile/tablet */}
-            <VirtualJoystick />
-          </div>
-        </>
+      {/* Conditional Rendering: Profile Setup vs. Main Game UI */}
+      {!isSetupComplete && !isLoadPromptOpen ? (
+        <ProfileSetup />
+      ) : (
+        isSetupComplete && (
+          <>
+            {/* Work Order Queue (Only show active game) */}
+            {!isWorkOrderOpen && !isRepairMenuOpen && (
+              <>
+                <WorkOrderList />
+                <div className="lg:hidden block"> {/* Only show joystick on mobile/tablet */}
+                  <VirtualJoystick />
+                </div>
+              </>
+            )}
+          </>
+        )
       )}
 
       {/* Repair Menu */}
@@ -311,6 +315,54 @@ function App() {
 
       {/* Modal Layer */}
       <AnimatePresence>
+        {/* Auto-Save Load Prompt */}
+        {isLoadPromptOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-6 text-center">
+                                <h3 className="text-xl font-bold text-white mb-2">Load Saved Game?</h3>
+                                <p className="text-slate-400 mb-6">
+                                    Last save: {autoSave.getLastSaveTime()?.toLocaleString()}
+                                </p>
+                                <div className="flex gap-3 justify-center">
+                                    <button
+                                        onClick={() => {
+                                            autoSave.deleteSave();
+                                            setIsLoadPromptOpen(false);
+                                            setToast({ message: 'Save Deleted.', type: 'error' });
+                                        }}
+                                        className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium"
+                                    >
+                                        Delete
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (autoSave.loadInGame()) {
+                                                setToast({ message: 'Game Loaded!', type: 'success' });
+                                            } else {
+                                                setToast({ message: 'Failed to load!', type: 'error' });
+                                            }
+                                            setIsLoadPromptOpen(false);
+                                        }}
+                                        className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium"
+                                    >
+                                        Load Game
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
         {isWorkOrderOpen && (
           <motion.div
             initial={{ opacity: 0 }}
