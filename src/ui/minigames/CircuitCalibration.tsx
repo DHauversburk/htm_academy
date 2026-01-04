@@ -14,12 +14,19 @@ interface Node {
     speed: number;
 }
 
+// --- Constants ---
+const SUCCESS_MARGIN = 10; // e.g., target is 80, success is 70-90
+const TARGET_ZONE_WIDTH = SUCCESS_MARGIN * 2;
+
+const INITIAL_NODES: Node[] = [
+    { id: 1, status: 'pending', value: 0, target: 80, speed: 1.5 },
+    { id: 2, status: 'pending', value: 0, target: 75, speed: 2.0 },
+    { id: 3, status: 'pending', value: 0, target: 85, speed: 2.5 },
+];
+// ---
+
 export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationProps) {
-    const [nodes, setNodes] = useState<Node[]>([
-        { id: 1, status: 'pending', value: 0, target: 80, speed: 1.5 },
-        { id: 2, status: 'pending', value: 0, target: 75, speed: 2.0 },
-        { id: 3, status: 'pending', value: 0, target: 85, speed: 2.5 },
-    ]);
+    const [nodes, setNodes] = useState<Node[]>(INITIAL_NODES);
     const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
     const requestRef = useRef<number>();
 
@@ -47,9 +54,23 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
         };
     }, [activeNodeId]);
 
+    // Win Condition Check
+    useEffect(() => {
+        const allSuccessful = nodes.every(node => node.status === 'success');
+        if (allSuccessful) {
+            // Add a small delay to allow the final "LOCKED" state to be visible
+            setTimeout(() => onSuccess(100), 500);
+        }
+    }, [nodes, onSuccess]);
+
     const handleNodeClick = (id: number) => {
         const node = nodes.find(n => n.id === id);
         if (!node) return;
+
+        // If a node is already active, only allow interaction with that specific node.
+        if (activeNodeId && activeNodeId !== id) {
+            return;
+        }
 
         if (node.status === 'pending') {
             // Start calibrating
@@ -58,15 +79,10 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
         } else if (node.status === 'calibrating') {
             // Stop and Check
             const diff = Math.abs(node.value - node.target);
-            const isSuccess = diff < 10; // 10% margin
+            const isSuccess = diff < SUCCESS_MARGIN;
 
             setNodes(prev => prev.map(n => n.id === id ? { ...n, status: isSuccess ? 'success' : 'fail' } : n));
             setActiveNodeId(null);
-
-            // Check if all complete
-            if (isSuccess && nodes.every(n => (n.id === id ? true : n.status === 'success'))) {
-                setTimeout(() => onSuccess(100), 500);
-            }
         } else if (node.status === 'fail') {
             // Retry
             setNodes(prev => prev.map(n => n.id === id ? { ...n, status: 'calibrating', value: 0 } : n));
@@ -87,8 +103,8 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
                         <div
                             className="absolute h-8 bg-green-500/20 border-x-2 border-green-400/50 rounded pointer-events-none z-0"
                             style={{
-                                left: `${node.target - 10}%`,
-                                width: '20%',
+                                left: `${node.target - SUCCESS_MARGIN}%`,
+                                width: `${TARGET_ZONE_WIDTH}%`,
                                 top: '50%',
                                 transform: 'translateY(-50%)',
                                 height: '120%'
