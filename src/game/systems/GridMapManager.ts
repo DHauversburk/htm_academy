@@ -39,7 +39,8 @@ export class GridMapManager {
         });
 
         // addTilesetImage(tilesetName, key, tileWidth, tileHeight, tileMargin, tileSpacing)
-        const tileset = this.map.addTilesetImage('tiles', 'tiles', this.TILE_SIZE, this.TILE_SIZE, 1, 2);
+        // SIMPLIFIED: No margin/spacing to ensure robust rendering
+        const tileset = this.map.addTilesetImage('tiles', 'tiles', this.TILE_SIZE, this.TILE_SIZE, 0, 0);
         if (!tileset) throw new Error("Failed to create tileset");
         this.tileset = tileset;
 
@@ -63,55 +64,10 @@ export class GridMapManager {
         // to prevent "tiny islands" or overlapping rooms.
         this.generateHospitalLayout(width, height);
 
-        /* 
-        if (config && config.rooms && config.rooms.length > 0) {
-            this.generateFromConfig(config.rooms, width, height);
-        } else {
-            console.warn("No suitable room config found. Generating procedural hospital layout.");
-            this.generateHospitalLayout(width, height);
-        }
-        */
-
         this.map.setCollision(1);
     }
 
-    /*
-    private generateFromConfig(rooms: any[], mapWidth: number, mapHeight: number) {
-        this.rooms = [];
 
-        // 1. Place Rooms
-        rooms.forEach((r, i) => {
-            let x = r.x;
-            let y = r.y;
-
-            // If no position, random placement with simple retry
-            if (x === undefined || y === undefined) {
-                let attempts = 0;
-                while (attempts < 50) {
-                    x = Math.floor(Math.random() * (mapWidth - r.w - 4)) + 2;
-                    y = Math.floor(Math.random() * (mapHeight - r.h - 4)) + 2;
-                    // Very basic overlap check: just ensure center isn't 0
-                    if (this.layer.getTileAt(x + Math.floor(r.w / 2), y + Math.floor(r.h / 2))?.index !== 0) {
-                        break;
-                    }
-                    attempts++;
-                }
-            }
-
-            // If we still don't have good coords (rare), just force it
-            if (x === undefined) x = 10;
-            if (y === undefined) y = 10;
-
-            this.createRoom(r.id || `Room_${i}`, x, y, r.w, r.h);
-        });
-
-        // 2. Connect Rooms
-        // Sort by Y then X to make clean corridors ideally, but simple sequential is fine
-        for (let i = 0; i < this.rooms.length - 1; i++) {
-            this.createCorridor(this.rooms[i], this.rooms[i + 1]);
-        }
-    }
-    */
 
     private generateHospitalLayout(mapWidth: number, mapHeight: number) {
         this.rooms = [];
@@ -197,15 +153,18 @@ export class GridMapManager {
 
         const graphics = this.scene.make.graphics({ x: 0, y: 0 });
 
+        // Simple 64x32 Texture (2 tiles side-by-side)
+
         // Tile 0: Floor (Light Gray/Blue)
         graphics.fillStyle(0xf1f5f9); // Slate-100
         graphics.fillRect(0, 0, 32, 32);
 
         // Tile 1: Wall (Dark Blue)
         graphics.fillStyle(0x334155); // Slate-700
-        graphics.fillRect(34, 0, 32, 32);
+        graphics.fillRect(32, 0, 32, 32);
 
-        graphics.generateTexture('tiles', 68, 32);
+        // Generate with Exact Dimensions
+        graphics.generateTexture('tiles', 64, 32);
     }
 
     public getLayer() {

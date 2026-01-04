@@ -83,7 +83,7 @@ export class MainGame extends Scene {
         const targetViewWidth = 16 * 32;
         const zoom = this.scale.width / targetViewWidth;
         // Force a more zoomed-in view, minimum 1.5x up to 3x
-        this.cameras.main.setZoom(Math.min(Math.max(zoom, 1.5), 3));
+        this.cameras.main.setZoom(Math.min(Math.max(zoom, 1.0), 2.0));
 
         // 5. Input
         if (this.input.keyboard) {
