@@ -89,7 +89,7 @@
 ## 🔮 Next Phase: Persistence & Expansion (Sprint 4)
 *   **Goal**: Save state to cloud and expand gameplay loop.
 *   **Todo**:
-    *   [ ] **Inventory Sync**: Save/Load `inventory_items` to Supabase.
+    *   [x] **Inventory Sync**: Save/Load `inventory_items` to Supabase.
     *   [ ] **Container Upgrades**: Purchase larger bags/carts to carry more tools.
     *   [ ] **Career Log**: Track solved tickets in `BMETs_log`.
     *   [ ] **New Devices**: Add 'Defibrillator' and 'Electrosurgical Unit' benches.
