@@ -44,6 +44,8 @@ interface GameState {
     achievements: Record<string, Achievement>;
     metrics: PerformanceMetrics;
 
+    isTutorialActive: boolean;
+
     setPlayerName: (name: string) => void;
     setJobTitle: (title: string) => void;
     setDifficulty: (level: 'easy' | 'medium' | 'hard') => void;
@@ -71,6 +73,8 @@ interface GameState {
     // Performance Tracking
     trackMetric: (metric: keyof PerformanceMetrics, value: number) => void;
     checkAchievements: () => void;
+
+    setTutorialState: (isActive: boolean) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -80,6 +84,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     authMode: 'guest',
     avatarColor: 0xffffff,
     isSetupComplete: false,
+    isTutorialActive: false,
     workOrders: [],
     activeOrderId: null,
     budget: 1000,
@@ -133,6 +138,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setWorkOrders: (orders) => set({ workOrders: orders }),
     addWorkOrder: (order: WorkOrder) => set((state) => ({ workOrders: [...state.workOrders, order] })),
     setActiveOrder: (id) => set({ activeOrderId: id }),
+    setTutorialState: (isActive) => set({ isTutorialActive: isActive }),
 
     // Cloud Sync Stats
     saveProfile: async () => {
