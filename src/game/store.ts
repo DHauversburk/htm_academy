@@ -51,6 +51,7 @@ interface GameState {
     setAvatarColor: (color: number) => void;
     setWorkOrders: (orders: WorkOrder[]) => void;
     addWorkOrder: (order: WorkOrder) => void;
+    removeWorkOrder: (id: string) => void;
     setActiveOrder: (id: string | null) => void;
     completeSetup: () => void;
 
@@ -132,6 +133,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setAvatarColor: (color) => set({ avatarColor: color }),
     setWorkOrders: (orders) => set({ workOrders: orders }),
     addWorkOrder: (order: WorkOrder) => set((state) => ({ workOrders: [...state.workOrders, order] })),
+    removeWorkOrder: (id) => set((state) => ({ workOrders: state.workOrders.filter(o => o.id !== id) })),
     setActiveOrder: (id) => set({ activeOrderId: id }),
 
     // Cloud Sync Stats
