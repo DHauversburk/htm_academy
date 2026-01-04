@@ -171,6 +171,13 @@ export class GridMapManager {
         return this.layer;
     }
 
+    public getMapDimensions() {
+        return {
+            width: this.map.widthInPixels,
+            height: this.map.heightInPixels,
+        };
+    }
+
     public getRoom(id: string): Room | undefined {
         return this.rooms.find(r => r.id === id);
     }
