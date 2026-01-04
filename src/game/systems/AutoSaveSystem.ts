@@ -1,4 +1,4 @@
-import { useGameStore } from '../game/store';
+import { useGameStore } from '../store';
 
 const AUTO_SAVE_KEY = 'htm_academy_autosave';
 const AUTO_SAVE_INTERVAL = 60000; // 1 minute
