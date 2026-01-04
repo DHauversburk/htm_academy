@@ -1,16 +1,16 @@
-import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
+import { MainGame } from '../scenes/MainGame';
 
 export type TutorialStep = {
     id: string;
     message: string;
     target?: { x: number, y: number }; // Target location for arrow
     action?: 'move' | 'interact_workbench' | 'interact_supplies' | 'complete_repair';
-    trigger?: (scene: Scene) => boolean;
+    trigger?: (scene: MainGame) => boolean;
 };
 
 export class TutorialSystem {
-    private scene: Scene;
+    private scene: MainGame;
     private currentStepIndex: number = 0;
     private isActive: boolean = false;
     private arrow!: Phaser.GameObjects.Graphics;
@@ -22,7 +22,7 @@ export class TutorialSystem {
             id: 'welcome',
             message: "Welcome, Technician! Use WASD or Joystick to move.",
             action: 'move',
-            trigger: (scene: any) => {
+            trigger: (scene: MainGame) => {
                 // Check if player has moved significantly
                 const player = scene.player;
                 return player && (Math.abs(player.body.velocity.x) > 10 || Math.abs(player.body.velocity.y) > 10);
@@ -48,7 +48,7 @@ export class TutorialSystem {
         }
     ];
 
-    constructor(scene: Scene) {
+    constructor(scene: MainGame) {
         this.scene = scene;
     }
 
@@ -106,13 +106,13 @@ export class TutorialSystem {
 
         // Set targets dynamically if needed
         if (step.id === 'find_workbench') {
-            const workbench = (this.scene as any).getZone('Workbench');
+            const workbench = this.scene.getZone('Workbench');
             if (workbench) this.drawArrow(workbench.x, workbench.y);
         } else if (step.id === 'get_supplies') {
-            const supplies = (this.scene as any).getZone('Supplies');
+            const supplies = this.scene.getZone('Supplies');
             if (supplies) this.drawArrow(supplies.x, supplies.y);
         } else if (step.id === 'repair') {
-            const workbench = (this.scene as any).getZone('Workbench');
+            const workbench = this.scene.getZone('Workbench');
             if (workbench) this.drawArrow(workbench.x, workbench.y);
         } else {
             this.hideArrow();

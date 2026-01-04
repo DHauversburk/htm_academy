@@ -6,13 +6,12 @@ import { InterruptionManager } from '../systems/InterruptionManager';
 import { PathfindingSystem } from '../systems/PathfindingSystem';
 import { MinimapSystem } from '../systems/MinimapSystem';
 import { TutorialSystem } from '../systems/TutorialSystem';
-import type { InterruptionEvent } from '../types';
+import type { DailyShift, InterruptionEvent } from '../types';
 
 export class MainGame extends Scene {
-    private player!: Phaser.Physics.Arcade.Sprite;
+    public player!: Phaser.Physics.Arcade.Sprite;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private wasd!: any;
+    private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
     private joystickInput = { x: 0, y: 0 };
 
     private mapManager!: GridMapManager;
@@ -37,11 +36,9 @@ export class MainGame extends Scene {
         // This guarantees it will work
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private shiftData: any = null; // Stored shift config
+    private shiftData: DailyShift | null = null; // Stored shift config
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    init(data: any) {
+    init(data: { shift: DailyShift }) {
         this.shiftData = data?.shift || null;
         console.log("MainGame Init with Shift Data:", this.shiftData);
     }
@@ -51,10 +48,10 @@ export class MainGame extends Scene {
         this.cameras.main.setBackgroundColor('#020617');
 
         // Expose for Debugging
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).game = this.game;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).mainScene = this;
+        // @ts-expect-error - for debugging
+        window.game = this.game;
+        // @ts-expect-error - for debugging
+        window.mainScene = this;
 
         // 1. Map Generation
         this.mapManager = new GridMapManager(this);
@@ -355,9 +352,7 @@ export class MainGame extends Scene {
     // --- NPC System ---
 
     listenForInterruptions() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        EventBus.on('spawn-interruption-npc', (eventAny: any) => {
-            const event = eventAny as InterruptionEvent;
+        EventBus.on('spawn-interruption-npc', (event: InterruptionEvent) => {
             this.spawnNPC(event);
         });
     }

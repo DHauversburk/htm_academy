@@ -21,6 +21,7 @@ import { InventoryHUD } from './ui/InventoryHUD';
 import { SupplyCabinet } from './ui/SupplyCabinet';
 import { AIDirector } from './game/systems/AIDirector';
 import { CareerDashboard } from './ui/CareerDashboard';
+import { WorkOrder } from './game/types';
 
 function App() {
   // Game Reference
@@ -29,8 +30,7 @@ function App() {
   const [isSupplyOpen, setIsSupplyOpen] = useState(false);
   const [isSetupOpen, setIsSetupOpen] = useState(true);
   const [isRepairMenuOpen, setIsRepairMenuOpen] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [currentWO, setCurrentWO] = useState<any>(null);
+  const [currentWO, setCurrentWO] = useState<WorkOrder | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isCareerDashboardOpen, setIsCareerDashboardOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);

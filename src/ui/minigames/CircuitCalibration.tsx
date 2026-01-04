@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 
 interface CircuitCalibrationProps {
-    onSuccess: (score: number) => void;
+    onSuccess: () => void;
     onCancel: () => void;
 }
 
@@ -65,7 +64,7 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
 
             // Check if all complete
             if (isSuccess && nodes.every(n => (n.id === id ? true : n.status === 'success'))) {
-                setTimeout(() => onSuccess(100), 500);
+                setTimeout(() => onSuccess(), 500);
             }
         } else if (node.status === 'fail') {
             // Retry
