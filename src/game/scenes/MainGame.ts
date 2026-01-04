@@ -5,6 +5,7 @@ import { GridMapManager } from '../systems/GridMapManager';
 import { InterruptionManager } from '../systems/InterruptionManager';
 import { PathfindingSystem } from '../systems/PathfindingSystem';
 import { MinimapSystem } from '../systems/MinimapSystem';
+import { TutorialSystem } from '../systems/TutorialSystem';
 import type { InterruptionEvent } from '../types';
 
 export class MainGame extends Scene {
@@ -17,6 +18,7 @@ export class MainGame extends Scene {
     private mapManager!: GridMapManager;
     private pathfinding!: PathfindingSystem;
     private minimap!: MinimapSystem;
+    private tutorial!: TutorialSystem;
 
     // Interactions
     private zones: { x: number, y: number, name: string, callback: () => void }[] = [];
@@ -159,6 +161,7 @@ export class MainGame extends Scene {
         // Cleanup
         this.events.on('shutdown', () => {
             EventBus.removeListener('joystick-move');
+            if (this.tutorial) this.tutorial.destroy();
         });
 
         // 6. Interactions
@@ -171,6 +174,11 @@ export class MainGame extends Scene {
         // 8. Interruptions
         this.listenForInterruptions();
 
+        // 9. Tutorial
+        this.tutorial = new TutorialSystem(this);
+        this.tutorial.create();
+        this.tutorial.start();
+
         EventBus.emit('scene-ready', this);
     }
 
@@ -181,6 +189,11 @@ export class MainGame extends Scene {
         // Minimap Update
         if (this.minimap && this.player) {
             this.minimap.update(this.player.x, this.player.y);
+        }
+
+        // Tutorial Update
+        if (this.tutorial) {
+            this.tutorial.update();
         }
 
         // Zone Checking
@@ -400,7 +413,7 @@ export class MainGame extends Scene {
                 const nextWorld = this.mapManager.tileToWorld(nextTile.x, nextTile.y);
 
                 // Move towards next tile
-                this.physics.moveTo(npc, nextWorld.x, nextWorld.y, 130); // Speed 130
+                this.physics.moveTo(npc, nextWorld.x, nextWorld.y, 130);
 
                 // Distance check
                 if (Phaser.Math.Distance.Between(npc.x, npc.y, nextWorld.x, nextWorld.y) < 10) {
@@ -415,10 +428,11 @@ export class MainGame extends Scene {
                     if (event && !npc.getData('triggered')) {
                         npc.setData('triggered', true);
                         EventBus.emit('interruption-triggered', event);
+
                         // Make NPC face player
                         npc.setFlipX(this.player.x < npc.x);
 
-                        // Despawn after a while?
+                        // Despawn after a while
                         this.time.delayedCall(10000, () => {
                             npc.destroy();
                             this.npcs = this.npcs.filter(n => n !== npc);
@@ -427,5 +441,9 @@ export class MainGame extends Scene {
                 }
             }
         });
+    }
+
+    public getZone(name: string) {
+        return this.zones.find(z => z.name === name);
     }
 }

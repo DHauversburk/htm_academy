@@ -9,8 +9,10 @@ import { WorkOrderList } from './ui/WorkOrderList';
 import { RepairMenu } from './ui/RepairMenu';
 import { VirtualJoystick } from './ui/VirtualJoystick';
 import { MobileControls } from './ui/MobileControls';
+import { TutorialOverlay } from './ui/TutorialOverlay';
 import { FPSCounter } from './ui/FPSCounter';
 import { SettingsPanel } from './ui/SettingsPanel';
+import { autoSave } from './game/systems/AutoSaveSystem';
 import { useGameStore } from './game/store';
 import { GameDirector } from './game/systems/Director';
 import { DEFECTS } from './game/data/scenarios/tutorial';
@@ -37,10 +39,17 @@ function App() {
   const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, workOrders } = useGameStore();
 
   useEffect(() => {
+    // Start Auto-Save
+    autoSave.start();
+
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
       return () => clearTimeout(timer);
     }
+
+    return () => {
+      autoSave.stop();
+    };
   }, [toast]);
 
   useEffect(() => {
@@ -262,6 +271,9 @@ function App() {
 
       {/* Mobile Interact Button */}
       {isSetupComplete && <MobileControls />}
+
+      {/* Tutorial Overlay */}
+      {isSetupComplete && <TutorialOverlay />}
 
       {/* FPS Counter */}
       {isSetupComplete && <FPSCounter />}
