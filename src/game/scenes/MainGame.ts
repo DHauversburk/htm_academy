@@ -94,6 +94,16 @@ export class MainGame extends Scene {
             this.input.keyboard.on('keydown-I', () => {
                 InterruptionManager.triggerRandomInterruption('medium');
             });
+
+            this.input.keyboard.on('keydown-F1', (event: KeyboardEvent) => {
+                event.preventDefault();
+                EventBus.emit('open-career-dashboard');
+            });
+
+            this.input.keyboard.on('keydown-F5', (event: KeyboardEvent) => {
+                event.preventDefault();
+                EventBus.emit('reset-game');
+            });
         }
 
         EventBus.on('joystick-move', (data: { x: number, y: number }) => {
