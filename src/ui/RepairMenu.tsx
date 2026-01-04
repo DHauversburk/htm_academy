@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
+import { CircuitCalibration } from './minigames/CircuitCalibration';
 
 interface RepairMenuProps {
     onClose: () => void;
@@ -20,17 +21,31 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
     const [selectedAction, setSelectedAction] = useState<string | null>(null);
     const [notes, setNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showMinigame, setShowMinigame] = useState(false);
 
-    const handleSubmit = () => {
+    const handleStartRepair = () => {
         if (!selectedAction) return;
-        setIsSubmitting(true);
-
-        // Simulate a momentary delay for "Saving..."
-        setTimeout(() => {
-            onComplete(selectedAction, notes);
-            setIsSubmitting(false);
-        }, 800);
+        setShowMinigame(true);
     };
+
+    const handleMinigameSuccess = (score: number) => {
+        setShowMinigame(false);
+        setIsSubmitting(true);
+        // Add score bonuses here later
+        setTimeout(() => {
+            onComplete(selectedAction!, notes);
+            setIsSubmitting(false);
+        }, 500);
+    };
+
+    if (showMinigame) {
+        return (
+            <CircuitCalibration
+                onSuccess={handleMinigameSuccess}
+                onCancel={() => setShowMinigame(false)}
+            />
+        );
+    }
 
     return (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -42,8 +57,8 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
             >
                 {/* Header */}
                 <div className="p-6 bg-slate-900 border-b border-slate-700">
-                    <h2 className="text-2xl font-bold text-white">Service Report</h2>
-                    <p className="text-slate-400 text-sm">Select the resolution for this work order.</p>
+                    <h2 className="text-2xl font-bold text-white">Service Repair</h2>
+                    <p className="text-slate-400 text-sm">Select action to begin repairs.</p>
                 </div>
 
                 {/* Content */}
@@ -91,7 +106,7 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
                         Cancel
                     </button>
                     <button
-                        onClick={handleSubmit}
+                        onClick={handleStartRepair}
                         disabled={!selectedAction || isSubmitting}
                         className={clsx(
                             "px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition-all flex items-center space-x-2",
@@ -100,8 +115,8 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
                                 : "bg-blue-500 hover:bg-blue-400 text-white hover:shadow-blue-500/25 active:scale-95"
                         )}
                     >
-                        <span>{isSubmitting ? 'Submitting...' : 'Complete Ticket'}</span>
-                        {!isSubmitting && <span>✓</span>}
+                        <span>Start Calibration</span>
+                        <span>🔧</span>
                     </button>
                 </div>
             </motion.div>
