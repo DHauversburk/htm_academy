@@ -29,7 +29,8 @@ export class MainGame extends Scene {
     }
 
     preload() {
-        this.load.spritesheet('sprite_technician', 'assets/sprite_technician_chonk.png', {
+        // Use simple sprite that we know works
+        this.load.spritesheet('sprite_technician', 'assets/sprite_technician_simple.png', {
             frameWidth: 64,
             frameHeight: 64
         });
@@ -157,14 +158,8 @@ export class MainGame extends Scene {
         const body = this.player.body as Phaser.Physics.Arcade.Body;
         if (!body) return;
 
-        // Get Dynamic Speed from Store
-        const baseSpeed = useGameStore.getState().calculateSpeed();
-        const acceleration = baseSpeed * 12; // Faster acceleration for snappier feel
-        const maxSpeed = baseSpeed * 1.2; // Slightly higher max speed
-
-        // Add drag for smoother stopping
-        body.setDrag(800);
-        body.setMaxVelocity(maxSpeed);
+        // Get Dynamic Speed from Store - Use direct velocity for responsive feel
+        const moveSpeed = useGameStore.getState().calculateSpeed();
 
         // Input Vector
         let dx = 0;
@@ -183,19 +178,19 @@ export class MainGame extends Scene {
             dy = this.joystickInput.y;
         }
 
-        // Apply acceleration-based movement
+        // Direct velocity for instant response (no floaty acceleration)
         if (dx !== 0 || dy !== 0) {
             const angle = Math.atan2(dy, dx);
-            const accelX = Math.cos(angle) * acceleration;
-            const accelY = Math.sin(angle) * acceleration;
+            const velocityX = Math.cos(angle) * moveSpeed;
+            const velocityY = Math.sin(angle) * moveSpeed;
 
-            body.setAcceleration(accelX, accelY);
+            body.setVelocity(velocityX, velocityY);
 
             // Simple animation
             this.player.play('walk', true);
             this.player.setFlipX(dx < 0); // Face left when moving left
         } else {
-            body.setAcceleration(0);
+            body.setVelocity(0, 0);
             this.player.play('idle', true);
         }
     }
@@ -252,17 +247,7 @@ export class MainGame extends Scene {
         }).setOrigin(0.5);
         container.add(label);
 
-        // Add subtle pulse animation
-        this.tweens.add({
-            targets: container,
-            scaleX: 1.05,
-            scaleY: 1.05,
-            duration: 1000,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-
+        // No animation - keep it simple and professional
         this.zones.push({ x, y, name, callback });
     }
 
