@@ -1,9 +1,16 @@
 import type { InterruptionEvent } from '../types';
 import { EventBus } from '../EventBus';
 import { GeminiService } from '../../lib/gemini';
+import { useGameStore } from '../store';
 
 export class InterruptionManager {
     static async triggerRandomInterruption(difficulty: string) {
+        // Prevent interruptions during tutorial
+        if (useGameStore.getState().isTutorialActive) {
+            console.log("[InterruptionManager] Tutorial active, skipping interruption.");
+            return;
+        }
+
         const type = Math.random() > 0.5 ? 'walk-in' : 'phone';
 
         // 1. Try AI Generation

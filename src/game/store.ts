@@ -20,6 +20,7 @@ interface GameState {
     difficulty: 'easy' | 'medium' | 'hard';
     authMode: 'guest' | 'authenticated';
     isSetupComplete: boolean;
+    isTutorialActive: boolean;
     workOrders: WorkOrder[];
     avatarColor: number;
     activeOrderId: string | null;
@@ -52,6 +53,7 @@ interface GameState {
     setWorkOrders: (orders: WorkOrder[]) => void;
     addWorkOrder: (order: WorkOrder) => void;
     setActiveOrder: (id: string | null) => void;
+    setTutorialStatus: (isActive: boolean) => void;
     completeSetup: () => void;
 
     // Actions
@@ -80,6 +82,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     authMode: 'guest',
     avatarColor: 0xffffff,
     isSetupComplete: false,
+    isTutorialActive: false,
     workOrders: [],
     activeOrderId: null,
     budget: 1000,
@@ -133,6 +136,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setWorkOrders: (orders) => set({ workOrders: orders }),
     addWorkOrder: (order: WorkOrder) => set((state) => ({ workOrders: [...state.workOrders, order] })),
     setActiveOrder: (id) => set({ activeOrderId: id }),
+    setTutorialStatus: (isActive) => set({ isTutorialActive: isActive }),
 
     // Cloud Sync Stats
     saveProfile: async () => {
