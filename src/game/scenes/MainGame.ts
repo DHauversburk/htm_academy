@@ -69,22 +69,33 @@ export class MainGame extends Scene {
         this.pathfinding = new PathfindingSystem();
         this.pathfinding.setGrid(this.mapManager.getCollisionGrid());
 
-        // 3. Player Setup - Use simple graphics instead of sprite
+        // 3. Player Setup - Simple procedural sprite
         const spawn = this.mapManager.getSpawnPoint();
 
-        // Create a simple graphic representation of the player
+        // Create sprite texture (coordinates relative to texture, not world)
         const graphics = this.add.graphics();
-        graphics.fillStyle(0x60a5fa, 1); // Light blue (scrubs color)
-        graphics.fillCircle(0, -8, 8); // Head
-        graphics.fillRect(-8, 0, 16, 20); // Body
-        graphics.generateTexture('player_texture', 32, 32);
+
+        // Head (peach colored circle)
+        graphics.fillStyle(0xfca5a5, 1);
+        graphics.fillCircle(16, 10, 7); // Centered at 16, near top
+
+        // Body (light blue rectangle for scrubs)
+        graphics.fillStyle(0x60a5fa, 1);
+        graphics.fillRect(8, 16, 16, 16); // Centered horizontally, below head
+
+        // Direction marker (white triangle pointing up)
+        graphics.fillStyle(0xffffff, 1);
+        graphics.fillTriangle(16, 6, 13, 10, 19, 10);
+
+        graphics.generateTexture('player', 32, 32);
         graphics.destroy();
 
-        this.player = this.physics.add.sprite(spawn.x, spawn.y, 'player_texture');
-        this.player.setScale(1.2);
-        this.player.setBodySize(24, 24);
-        this.player.setOffset(20, 32); // Lower body hitbox
+        this.player = this.physics.add.sprite(spawn.x, spawn.y, 'player');
+        this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
+
+        // Simple circular physics body
+        this.player.body!.setCircle(12);
 
         // Collision with Walls
         this.physics.add.collider(this.player, layer);
@@ -92,8 +103,6 @@ export class MainGame extends Scene {
         // Apply Tint
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
-
-        // Simple graphic - no animations needed
 
         // 4. Camera
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -167,7 +176,7 @@ export class MainGame extends Scene {
             dy = this.joystickInput.y;
         }
 
-        // Direct velocity for instant response (no floaty acceleration)
+        // Direct velocity for instant response
         if (dx !== 0 || dy !== 0) {
             const angle = Math.atan2(dy, dx);
             const velocityX = Math.cos(angle) * moveSpeed;
@@ -175,40 +184,10 @@ export class MainGame extends Scene {
 
             body.setVelocity(velocityX, velocityY);
 
-            // Determine 8-directional animation based on angle
-            const degrees = (angle * 180 / Math.PI + 360) % 360;
-
-            if (degrees >= 337.5 || degrees < 22.5) {
-                // Right
-                this.player.play('walk_right', true);
-            } else if (degrees >= 22.5 && degrees < 67.5) {
-                // Down-Right (use right animation)
-                this.player.play('walk_right', true);
-            } else if (degrees >= 67.5 && degrees < 112.5) {
-                // Down
-                this.player.play('walk_down', true);
-            } else if (degrees >= 112.5 && degrees < 157.5) {
-                // Down-Left (use left animation)
-                this.player.play('walk_left', true);
-            } else if (degrees >= 157.5 && degrees < 202.5) {
-                // Left
-                this.player.play('walk_left', true);
-            } else if (degrees >= 202.5 && degrees < 247.5) {
-                // Up-Left (use left animation)
-                this.player.play('walk_left', true);
-            } else if (degrees >= 247.5 && degrees < 292.5) {
-                // Up
-                this.player.play('walk_up', true);
-            } else {
-                // Up-Right (use right animation)
-                this.player.play('walk_right', true);
-            }
+            // Rotate sprite to face direction (subtract 90deg because sprite faces up by default)
+            this.player.setRotation(angle - Math.PI / 2);
         } else {
             body.setVelocity(0, 0);
-            // Use last facing direction for idle (default to down)
-            const currentAnim = this.player.anims.currentAnim?.key || 'walk_down';
-            const idleAnim = currentAnim.replace('walk', 'idle');
-            this.player.play(idleAnim, true);
         }
     }
 
