@@ -38,7 +38,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Store
-  const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, workOrders } = useGameStore();
+  const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, removeWorkOrder } = useGameStore();
 
   useEffect(() => {
     // Start Auto-Save
@@ -217,8 +217,7 @@ function App() {
       setToast({ message: 'Repair Successful! Ticket Closed.', type: 'success' });
 
       // Remove order from list
-      const remainingOrders = workOrders.filter(o => o.id !== currentWO.id);
-      setWorkOrders(remainingOrders);
+      removeWorkOrder(currentWO.id);
       setCurrentWO(null);
 
       // Return to Workshop
