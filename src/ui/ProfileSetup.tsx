@@ -8,7 +8,7 @@ export const ProfileSetup = () => {
     const { setPlayerName, setDifficulty, completeSetup, setAuthMode, setJobTitle } = useGameStore();
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [name, setName] = useState('');
-    const [role, setRole] = useState<'intern' | 'tech' | 'manager'>('intern');
+    const [role, setRole] = useState<'intern' | 'tech' | 'manager'>('tech');
 
     const handleGuestStart = () => {
         setAuthMode('guest');
