@@ -25,7 +25,7 @@ export const ProfileSetup = () => {
 
     const handleFinalize = () => {
         setDifficulty(role === 'intern' ? 'easy' : role === 'manager' ? 'hard' : 'medium');
-        setJobTitle(role === 'intern' ? 'Biomed Intern' : role === 'manager' ? 'HTM Manager' : 'BMET II');
+        setJobTitle(role === 'intern' ? 'BMET I' : role === 'manager' ? 'BMET III' : 'BMET II');
         completeSetup();
 
         // Trigger the tutorial completion sequence (which starts generation)
@@ -37,7 +37,7 @@ export const ProfileSetup = () => {
             <div className="absolute inset-0 bg-[url('/assets/grid-pattern.png')] opacity-10 pointer-events-none" />
 
             {/* Version Tag */}
-            <div className="absolute top-4 left-4 text-xs font-mono text-slate-500 opacity-50">v0.2.3</div>
+            <div className="absolute top-4 left-4 text-xs font-mono text-slate-500 opacity-50">v0.2.4</div>
 
             <motion.div
                 className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden"
@@ -126,12 +126,25 @@ export const ProfileSetup = () => {
                                         className={clsx(
                                             "p-4 rounded-xl border text-left transition-all",
                                             role === 'intern'
-                                                ? "bg-indigo-600/20 border-indigo-500 ring-1 ring-indigo-500"
+                                                ? "bg-blue-600/20 border-blue-500 ring-1 ring-blue-500"
                                                 : "bg-slate-800 border-slate-700 hover:border-slate-600"
                                         )}
                                     >
-                                        <div className="font-bold text-indigo-300">Intern (Easy)</div>
-                                        <div className="text-xs text-slate-400 mt-1">Fewer tickets, accurate descriptions. Good for training.</div>
+                                        <div className="font-bold text-blue-300">BMET I • Bench Tech</div>
+                                        <div className="text-xs text-slate-400 mt-1">Small Clinic (Solo). Focus on PMs and basic repairs.</div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setRole('tech')}
+                                        className={clsx(
+                                            "p-4 rounded-xl border text-left transition-all",
+                                            role === 'tech'
+                                                ? "bg-amber-600/20 border-amber-500 ring-1 ring-amber-500"
+                                                : "bg-slate-800 border-slate-700 hover:border-slate-600"
+                                        )}
+                                    >
+                                        <div className="font-bold text-amber-300">BMET II • Team Chief</div>
+                                        <div className="text-xs text-slate-400 mt-1">Small Hospital. Manage workflow and complex repairs.</div>
                                     </button>
 
                                     <button
@@ -143,8 +156,8 @@ export const ProfileSetup = () => {
                                                 : "bg-slate-800 border-slate-700 hover:border-slate-600"
                                         )}
                                     >
-                                        <div className="font-bold text-red-300">Manager (Hard)</div>
-                                        <div className="text-xs text-slate-400 mt-1">Budget crisis, angry doctors, cryptic failures.</div>
+                                        <div className="font-bold text-red-300">BMET III • Shop Chief</div>
+                                        <div className="text-xs text-slate-400 mt-1">Large Medical Center. Manage multiple teams & budgets.</div>
                                     </button>
                                 </div>
 

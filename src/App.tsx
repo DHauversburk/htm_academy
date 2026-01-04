@@ -379,7 +379,7 @@ function App() {
       {/* Version Badge */}
       {isSetupComplete && (
         <div className="fixed bottom-2 right-2 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-slate-400 font-mono border border-slate-700">
-          v0.2.3
+          v0.2.4
         </div>
       )}
     </div>
