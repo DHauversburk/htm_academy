@@ -38,7 +38,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Store
-  const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, workOrders } = useGameStore();
+  const { isSetupComplete, setWorkOrders, setActiveOrder, difficulty, workOrders, removeWorkOrder, addWorkOrder } = useGameStore();
 
   useEffect(() => {
     // Start Auto-Save
@@ -216,10 +216,13 @@ function App() {
       // SUCCESS
       setToast({ message: 'Repair Successful! Ticket Closed.', type: 'success' });
 
-      // Remove order from list
-      const remainingOrders = workOrders.filter(o => o.id !== currentWO.id);
-      setWorkOrders(remainingOrders);
+      // Remove completed order
+      removeWorkOrder(currentWO.id);
       setCurrentWO(null);
+
+      // Add a new one to keep the list full
+      const newOrder = GameDirector.generateSingleWorkOrder(difficulty, workOrders);
+      addWorkOrder(newOrder);
 
       // Return to Workshop
       if (phaserRef.current?.scene) {

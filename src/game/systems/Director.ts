@@ -40,6 +40,20 @@ export class GameDirector {
         return orders;
     }
 
+    public static generateSingleWorkOrder(difficulty: 'easy' | 'medium' | 'hard', existingOrders: WorkOrder[]): WorkOrder {
+        const config = DIFFICULTY_CONFIG[difficulty];
+        let newOrder: WorkOrder;
+        let isUnique = false;
+
+        // Keep rolling until we get a work order with a unique problem description
+        while (!isUnique) {
+            newOrder = this.rollWorkOrder(config, existingOrders.length);
+            isUnique = !existingOrders.some(order => order.reportedIssue === newOrder.reportedIssue);
+        }
+
+        return newOrder!;
+    }
+
     private static rollWorkOrder(config: typeof DIFFICULTY_CONFIG['easy'], index: number): WorkOrder {
         // 1. Roll for Device
         const deviceKeys = Object.keys(DEVICES);
