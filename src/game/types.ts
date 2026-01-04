@@ -60,6 +60,12 @@ export interface WorkOrder {
     isSafetyCheckRequired: boolean; // Must do electrical safety?
     reward: number; // $ reward for completion
     difficulty: number; // 1-5 scale
+    ticketType: 'PM' | 'CM'; // Preventive vs Corrective Maintenance
+    locationDetails: {
+        department: string;
+        room: string;
+        bed?: string;
+    };
 }
 
 export interface Scenario {

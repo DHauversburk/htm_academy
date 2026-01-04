@@ -43,7 +43,13 @@ export const TUTORIAL_SCENARIO: Scenario = {
             status: 'open',
             isSafetyCheckRequired: true,
             reward: 75,
-            difficulty: 1
+            difficulty: 1,
+            ticketType: 'CM',
+            locationDetails: {
+                department: 'Oncology',
+                room: 'Room 402',
+                bed: 'Bed A'
+            }
         }
     ]
 };

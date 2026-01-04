@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../game/store';
 import { EventBus } from '../game/EventBus';
 import clsx from 'clsx';
+import { GameDirector } from '../game/systems/Director';
 
 
 interface WorkbenchTerminalProps {
@@ -14,6 +15,7 @@ export const WorkbenchTerminal = ({ onClose }: WorkbenchTerminalProps) => {
     const [selectedId, setSelectedId] = useState<string | null>(activeOrderId);
 
     const activeOrder = workOrders.find(o => o.id === selectedId);
+    const activeDevice = activeOrder ? GameDirector.getDeviceDetails(activeOrder.deviceId) : null;
 
     const handleAccept = () => {
         if (selectedId) {
@@ -104,9 +106,10 @@ export const WorkbenchTerminal = ({ onClose }: WorkbenchTerminalProps) => {
                                             </span>
                                             <span className={clsx("px-2 py-1 rounded font-bold uppercase border",
                                                 activeOrder.priority === 'emergency' ? "bg-red-900/30 border-red-500 text-red-400" :
-                                                    "bg-blue-900/30 border-blue-500 text-blue-400"
+                                                    activeOrder.ticketType === 'PM' ? "bg-purple-900/30 border-purple-500 text-purple-400" :
+                                                        "bg-blue-900/30 border-blue-500 text-blue-400"
                                             )}>
-                                                {activeOrder.priority} PRIORITY
+                                                {activeOrder.priority} • {activeOrder.ticketType === 'PM' ? 'MAINTENANCE' : 'REPAIR'}
                                             </span>
                                         </div>
                                     </div>
@@ -119,13 +122,16 @@ export const WorkbenchTerminal = ({ onClose }: WorkbenchTerminalProps) => {
                                 <div className="grid grid-cols-2 gap-8 mb-8">
                                     <div className="bg-slate-900 p-4 rounded border border-slate-800">
                                         <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Location</h4>
-                                        <div className="text-lg text-white">{activeOrder.customer}</div>
-                                        <div className="text-sm text-slate-400">Bed 4, Main Ward</div>
+                                        <div className="text-lg text-white">{activeOrder.locationDetails?.department || activeOrder.customer}</div>
+                                        <div className="text-sm text-slate-400">
+                                            {activeOrder.locationDetails?.room || 'General Area'}
+                                            {activeOrder.locationDetails?.bed && <span className="text-slate-500"> • {activeOrder.locationDetails.bed}</span>}
+                                        </div>
                                     </div>
                                     <div className="bg-slate-900 p-4 rounded border border-slate-800">
                                         <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Device</h4>
-                                        <div className="text-lg text-white">{activeOrder.deviceId}</div>
-                                        <div className="text-sm text-slate-400">Infusion Pump (Alaris)</div>
+                                        <div className="text-lg text-white">{activeDevice?.name || activeOrder.deviceId}</div>
+                                        <div className="text-sm text-slate-400">{activeDevice?.type || 'Unknown Device'}</div>
                                     </div>
                                 </div>
 

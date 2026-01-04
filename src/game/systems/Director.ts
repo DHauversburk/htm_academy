@@ -1,25 +1,58 @@
 import type { WorkOrder, Priority } from '../types';
-import { DEVICES, DEFECTS } from '../data/scenarios/tutorial'; // In real app, this comes from Supabase/LocalDB
+
+// --- MOCK DATABASE ---
+const MOCK_DEVICES = {
+    'pump_alaris': { id: 'pump_alaris', name: 'Alaris 8100', type: 'Infusion Pump', imageKey: 'device_pump' },
+    'defib_zoll': { id: 'defib_zoll', name: 'Zoll R Series', type: 'Defibrillator', imageKey: 'device_defib' },
+    'monitor_philips': { id: 'monitor_philips', name: 'IntelliVue MX400', type: 'Patient Monitor', imageKey: 'device_monitor' },
+    'ekg_ge': { id: 'ekg_ge', name: 'MAC 5500', type: 'EKG Machine', imageKey: 'device_ekg' },
+    'vent_drager': { id: 'vent_drager', name: 'Evita Infinity V500', type: 'Ventilator', imageKey: 'device_vent' }
+};
+
+const PM_TASKS = [
+    { id: 'pm_annual', description: 'Annual Safety Inspection due', baseReward: 60, difficulty: 1 },
+    { id: 'pm_batt', description: 'Scheduled Battery Replacement', baseReward: 80, difficulty: 1 },
+    { id: 'pm_cal', description: 'Calibration Verification required', baseReward: 100, difficulty: 2 },
+    { id: 'pm_sw', description: 'Software Update Available (v2.4)', baseReward: 70, difficulty: 1 }
+];
+
+const REPAIR_TASKS = [
+    { id: 'broken_case', description: 'Outer casing cracked/damaged', baseReward: 120, difficulty: 2 },
+    { id: 'bad_screen', description: 'Touchscreen unresponsive', baseReward: 150, difficulty: 3 },
+    { id: 'power_fail', description: 'Device fails to power on', baseReward: 200, difficulty: 3 },
+    { id: 'air_in_line', description: 'Persistent "Air in Line" error', baseReward: 180, difficulty: 4 },
+    { id: 'ecg_noise', description: 'ECG signal noisy/artifact', baseReward: 140, difficulty: 2 },
+    { id: 'alarm_speaker', description: 'Audio alarm volume low/muffled', baseReward: 110, difficulty: 2 },
+    { id: 'connector_dmg', description: 'SpO2 connector port damaged', baseReward: 160, difficulty: 3 }
+];
+
+const DEPARTMENTS = [
+    { id: 'ICU', name: 'ICU', rooms: ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Central Station'] },
+    { id: 'ER', name: 'Emergency', rooms: ['Trauma 1', 'Trauma 2', 'Triage A', 'Triage B', 'Exam 4'] },
+    { id: 'OR', name: 'Operating Room', rooms: ['OR 1', 'OR 2', 'OR 3', 'PACU Bay 1', 'Anesthesia Workroom'] },
+    { id: 'MEDSURG', name: 'Med-Surg', rooms: ['Room 304', 'Room 305', 'Room 306', 'Nurse Station'] },
+    { id: 'RAD', name: 'Radiology', rooms: ['X-Ray 1', 'CT Control', 'MRI Prep', 'Ultrasound 2'] }
+];
 
 // Weighted Probability Tables
 const DIFFICULTY_CONFIG = {
     'easy': {
         ticketCount: 3,
-        safetyCheckChance: 0.3, // 30% chance needing electrical safety
+        pmChance: 0.8, // 80% PMs (Easy)
         priorities: ['routine'] as Priority[],
-        rootCauseObscurity: 0.1 // 10% chance the reported issue is wrong
+        rootCauseObscurity: 0.1
     },
     'medium': {
         ticketCount: 5,
-        safetyCheckChance: 0.6,
+        pmChance: 0.4, // 40% PMs
         priorities: ['routine', 'urgent'] as Priority[],
-        rootCauseObscurity: 0.4
+        rootCauseObscurity: 0.3
     },
     'hard': {
         ticketCount: 8,
-        safetyCheckChance: 1.0, // Everything needs checking
+        pmChance: 0.1, // 10% PMs (Mostly broken stuff)
         priorities: ['urgent', 'emergency'] as Priority[],
-        rootCauseObscurity: 0.8 // 80% chance the nurse reported the wrong thing!
+        rootCauseObscurity: 0.7
     }
 };
 
@@ -27,7 +60,6 @@ export class GameDirector {
 
     /**
      * The "Director" logic - procedurally generates a shift based on player level.
-     * This mimics a "Dungeon Master" creating a balanced encounter.
      */
     static generateShift(difficulty: 'easy' | 'medium' | 'hard'): WorkOrder[] {
         const config = DIFFICULTY_CONFIG[difficulty];
@@ -42,59 +74,63 @@ export class GameDirector {
 
     private static rollWorkOrder(config: typeof DIFFICULTY_CONFIG['easy'], index: number): WorkOrder {
         // 1. Roll for Device
-        const deviceKeys = Object.keys(DEVICES);
+        const deviceKeys = Object.keys(MOCK_DEVICES);
         const randomDeviceKey = deviceKeys[Math.floor(Math.random() * deviceKeys.length)];
-        const device = DEVICES[randomDeviceKey];
+        const device = MOCK_DEVICES[randomDeviceKey as keyof typeof MOCK_DEVICES];
 
-        // 2. Roll for Defect
-        const defectKeys = Object.keys(DEFECTS);
-        const randomDefectKey = defectKeys[Math.floor(Math.random() * defectKeys.length)];
-        const defect = DEFECTS[randomDefectKey];
+        // 2. Roll for Type (PM vs CM)
+        const isPM = Math.random() < config.pmChance;
+        const ticketType = isPM ? 'PM' : 'CM';
 
-        // 3. Generate "Reported Issue" (The Nurse's Description)
-        // If obscurity is high, the nurse description might be vague or wrong compared to the actual defect
-        const isObscure = Math.random() < config.rootCauseObscurity;
-        const reportedIssue = isObscure
-            ? "It's just not working right" // Vague
-            : defect.description; // Accurate
+        // 3. Roll for Defect/Task
+        const taskPool = isPM ? PM_TASKS : REPAIR_TASKS;
+        const task = taskPool[Math.floor(Math.random() * taskPool.length)];
 
-        // 4. Roll for Priority
-        const priority = config.priorities[Math.floor(Math.random() * config.priorities.length)];
+        // 4. Generate Location
+        const dept = DEPARTMENTS[Math.floor(Math.random() * DEPARTMENTS.length)];
+        const room = dept.rooms[Math.floor(Math.random() * dept.rooms.length)];
+        const bed = Math.random() > 0.5 ? `Bed ${Math.floor(Math.random() * 4) + 1}` : undefined;
 
-        // 5. Calculate Reward & Difficulty
-        let baseReward = 50 + Math.floor(Math.random() * 50); // $50-100 base
-        let diffRating = 1;
-
-        if (priority === 'urgent') {
-            baseReward *= 1.5;
-            diffRating += 1;
+        // 5. Generate Description
+        let reportedIssue = task.description;
+        if (!isPM && Math.random() < config.rootCauseObscurity) {
+            const vagueissues = ["It's not working", "Beeping loudly", "Nurse says it smells funny", "Screen is weird"];
+            reportedIssue = vagueissues[Math.floor(Math.random() * vagueissues.length)];
         }
-        if (priority === 'emergency') {
-            baseReward *= 2.5;
-            diffRating += 2;
-        }
-        if (isObscure) {
-            baseReward += 50;
-            diffRating += 1;
-        }
+
+        // 6. Roll for Priority
+        let priority = config.priorities[Math.floor(Math.random() * config.priorities.length)];
+        // PMs are almost always routine
+        if (isPM) priority = 'routine';
+
+        // 7. Calculate Money
+        let reward = task.baseReward;
+        if (priority === 'urgent') reward *= 1.5;
+        if (priority === 'emergency') reward *= 2.5;
 
         return {
             id: `WO-${new Date().getFullYear()}-${1000 + index}`,
             deviceId: device.id,
-            customer: this.getRandomDepartment(),
+            customer: dept.name, // Legacy field fallback
+            locationDetails: {
+                department: dept.name,
+                room: room,
+                bed: bed
+            },
             priority: priority,
+            ticketType: ticketType,
             dateCreated: new Date().toISOString(),
             reportedIssue: reportedIssue,
-            actualDefectId: defect.id,
+            actualDefectId: task.id,
             status: 'open',
-            isSafetyCheckRequired: Math.random() < config.safetyCheckChance,
-            reward: Math.floor(baseReward),
-            difficulty: diffRating
+            isSafetyCheckRequired: isPM || Math.random() < 0.3,
+            reward: Math.floor(reward),
+            difficulty: task.difficulty
         };
     }
 
-    private static getRandomDepartment(): string {
-        const depts = ['ICU', 'ER', 'OR', 'Med-Surg', 'Radiology', 'PACU'];
-        return depts[Math.floor(Math.random() * depts.length)];
+    // Helper to get device details by ID for the UI
+    static getDeviceDetails(id: string) {
+        return MOCK_DEVICES[id as keyof typeof MOCK_DEVICES];
     }
 }
