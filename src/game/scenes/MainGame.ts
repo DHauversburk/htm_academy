@@ -29,8 +29,8 @@ export class MainGame extends Scene {
     }
 
     preload() {
-        // Use simple sprite that we know works
-        this.load.spritesheet('sprite_technician', 'assets/sprite_technician_simple.png', {
+        // 8-directional sprite sheet: 4 rows (down, up, left, right) x 4 frames each
+        this.load.spritesheet('sprite_technician', 'assets/sprite_technician_8dir.png', {
             frameWidth: 64,
             frameHeight: 64
         });
@@ -89,21 +89,56 @@ export class MainGame extends Scene {
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
 
-        // CREATE ANIMATIONS (using only frames that exist: 0-3)
-        if (!this.anims.exists('walk')) {
+        // CREATE 8-DIRECTIONAL ANIMATIONS
+        // Row 0: Down (frames 0-3)
+        if (!this.anims.exists('walk_down')) {
             this.anims.create({
-                key: 'walk',
+                key: 'walk_down',
                 frames: this.anims.generateFrameNumbers('sprite_technician', { start: 0, end: 3 }),
                 frameRate: 10,
                 repeat: -1
             });
         }
-        if (!this.anims.exists('idle')) {
+        // Row 1: Up (frames 4-7)  
+        if (!this.anims.exists('walk_up')) {
             this.anims.create({
-                key: 'idle',
-                frames: [{ key: 'sprite_technician', frame: 0 }],
-                frameRate: 1
+                key: 'walk_up',
+                frames: this.anims.generateFrameNumbers('sprite_technician', { start: 4, end: 7 }),
+                frameRate: 10,
+                repeat: -1
             });
+        }
+        // Row 2: Left (frames 8-11)
+        if (!this.anims.exists('walk_left')) {
+            this.anims.create({
+                key: 'walk_left',
+                frames: this.anims.generateFrameNumbers('sprite_technician', { start: 8, end: 11 }),
+                frameRate: 10,
+                repeat: -1
+            });
+        }
+        // Row 3: Right (frames 12-15)
+        if (!this.anims.exists('walk_right')) {
+            this.anims.create({
+                key: 'walk_right',
+                frames: this.anims.generateFrameNumbers('sprite_technician', { start: 12, end: 15 }),
+                frameRate: 10,
+                repeat: -1
+            });
+        }
+
+        // Idle animations (first frame of each direction)
+        if (!this.anims.exists('idle_down')) {
+            this.anims.create({ key: 'idle_down', frames: [{ key: 'sprite_technician', frame: 0 }], frameRate: 1 });
+        }
+        if (!this.anims.exists('idle_up')) {
+            this.anims.create({ key: 'idle_up', frames: [{ key: 'sprite_technician', frame: 4 }], frameRate: 1 });
+        }
+        if (!this.anims.exists('idle_left')) {
+            this.anims.create({ key: 'idle_left', frames: [{ key: 'sprite_technician', frame: 8 }], frameRate: 1 });
+        }
+        if (!this.anims.exists('idle_right')) {
+            this.anims.create({ key: 'idle_right', frames: [{ key: 'sprite_technician', frame: 12 }], frameRate: 1 });
         }
 
         // 4. Camera
@@ -186,12 +221,40 @@ export class MainGame extends Scene {
 
             body.setVelocity(velocityX, velocityY);
 
-            // Simple animation
-            this.player.play('walk', true);
-            this.player.setFlipX(dx < 0); // Face left when moving left
+            // Determine 8-directional animation based on angle
+            const degrees = (angle * 180 / Math.PI + 360) % 360;
+
+            if (degrees >= 337.5 || degrees < 22.5) {
+                // Right
+                this.player.play('walk_right', true);
+            } else if (degrees >= 22.5 && degrees < 67.5) {
+                // Down-Right (use right animation)
+                this.player.play('walk_right', true);
+            } else if (degrees >= 67.5 && degrees < 112.5) {
+                // Down
+                this.player.play('walk_down', true);
+            } else if (degrees >= 112.5 && degrees < 157.5) {
+                // Down-Left (use left animation)
+                this.player.play('walk_left', true);
+            } else if (degrees >= 157.5 && degrees < 202.5) {
+                // Left
+                this.player.play('walk_left', true);
+            } else if (degrees >= 202.5 && degrees < 247.5) {
+                // Up-Left (use left animation)
+                this.player.play('walk_left', true);
+            } else if (degrees >= 247.5 && degrees < 292.5) {
+                // Up
+                this.player.play('walk_up', true);
+            } else {
+                // Up-Right (use right animation)
+                this.player.play('walk_right', true);
+            }
         } else {
             body.setVelocity(0, 0);
-            this.player.play('idle', true);
+            // Use last facing direction for idle (default to down)
+            const currentAnim = this.player.anims.currentAnim?.key || 'walk_down';
+            const idleAnim = currentAnim.replace('walk', 'idle');
+            this.player.play(idleAnim, true);
         }
     }
 
