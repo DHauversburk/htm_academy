@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
+import { useGameStore } from '../store';
 
 export type TutorialStep = {
     id: string;
@@ -71,6 +72,7 @@ export class TutorialSystem {
         this.isActive = true;
         this.currentStepIndex = 0;
         this.showStep(this.currentStepIndex);
+        useGameStore.getState().setTutorialStatus(true);
         console.log('[Tutorial] Started');
     }
 
@@ -170,11 +172,13 @@ export class TutorialSystem {
     private complete() {
         this.isActive = false;
         this.hideArrow();
+        useGameStore.getState().setTutorialStatus(false);
         EventBus.emit('tutorial-complete');
         console.log('[Tutorial] Completed');
     }
 
     destroy() {
+        useGameStore.getState().setTutorialStatus(false);
         EventBus.removeListener('zone-enter', this.handleZoneEnter);
         EventBus.removeListener('work-order-complete', this.handleWorkOrderComplete);
         this.arrow.destroy();
