@@ -17,11 +17,12 @@ export const WorkOrderList = () => {
     };
 
     return (
-        <div className="absolute top-16 right-4 w-80 max-h-[80vh] overflow-y-auto z-10 space-y-3 pointer-events-auto">
+        <div className="fixed inset-0 z-10 pointer-events-none p-4">
+            <div className="w-80 max-w-full float-right">
             {/* Budget Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-                className="bg-slate-900/90 border border-slate-700 p-3 rounded-xl mb-4 flex justify-between items-center shadow-lg backdrop-blur-sm"
+                className="bg-slate-900/90 border pointer-events-auto border-slate-700 p-3 rounded-xl mb-4 flex justify-between items-center shadow-lg backdrop-blur-sm"
             >
                 <span className="text-slate-400 text-sm font-bold uppercase tracking-wider">Dept Budget</span>
                 <span className={clsx("text-lg font-mono font-bold", budget < 500 ? "text-red-400" : "text-green-400")}>
@@ -37,7 +38,7 @@ export const WorkOrderList = () => {
                     whileHover={{ scale: 1.02 }}
                     onClick={() => handleSelectOrder(order)}
                     className={clsx(
-                        "p-4 rounded-xl border border-slate-700 shadow-xl cursor-pointer transition-colors backdrop-blur-md",
+                        "p-4 rounded-xl border border-slate-700 shadow-xl cursor-pointer transition-colors backdrop-blur-md pointer-events-auto",
                         activeOrderId === order.id ? "bg-blue-900/80 border-blue-500" : "bg-slate-800/90 hover:bg-slate-800"
                     )}
                 >
@@ -60,6 +61,7 @@ export const WorkOrderList = () => {
                     </div>
                 </motion.div>
             ))}
+            </div>
         </div>
     );
 };
