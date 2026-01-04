@@ -136,11 +136,18 @@ export class MainGame extends Scene {
         const { avatarColor } = useGameStore.getState();
         this.player.setTint(avatarColor);
 
-        // 4. Camera
+        // 4. Camera & World Bounds
+        const map = this.mapManager.getMap();
+        const mapWidth = map.widthInPixels;
+        const mapHeight = map.heightInPixels;
+
+        this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
+        this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-        const targetViewWidth = 16 * 32;
+
+        // Dynamic Zoom
+        const targetViewWidth = 16 * 32; // e.g., show 16 tiles across
         const zoom = this.scale.width / targetViewWidth;
-        // Force a more zoomed-in view, minimum 1.5x up to 3x
         this.cameras.main.setZoom(Math.min(Math.max(zoom, 1.0), 2.0));
 
         // 5. Input

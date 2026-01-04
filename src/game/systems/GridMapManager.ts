@@ -191,6 +191,10 @@ export class GridMapManager {
         return this.layer;
     }
 
+    public getMap() {
+        return this.map;
+    }
+
     public getRoom(id: string): Room | undefined {
         return this.rooms.find(r => r.id === id);
     }
