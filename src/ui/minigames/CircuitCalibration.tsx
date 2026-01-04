@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 
 interface CircuitCalibrationProps {
     onSuccess: (score: number) => void;
@@ -21,7 +20,7 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
         { id: 3, status: 'pending', value: 0, target: 85, speed: 2.5 },
     ]);
     const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
-    const requestRef = useRef<number>();
+    const requestRef = useRef<number>(0);
 
     // Game Loop
     useEffect(() => {
@@ -103,8 +102,8 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
                             {/* Fill */}
                             <div
                                 className={`h-full transition-none ${node.status === 'success' ? 'bg-green-500' :
-                                        node.status === 'fail' ? 'bg-red-500' :
-                                            'bg-blue-500'
+                                    node.status === 'fail' ? 'bg-red-500' :
+                                        'bg-blue-500'
                                     }`}
                                 style={{ width: `${node.value}%` }}
                             />

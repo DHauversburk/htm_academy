@@ -28,7 +28,7 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
         setShowMinigame(true);
     };
 
-    const handleMinigameSuccess = (score: number) => {
+    const handleMinigameSuccess = (_score: number) => {
         setShowMinigame(false);
         setIsSubmitting(true);
         // Add score bonuses here later
