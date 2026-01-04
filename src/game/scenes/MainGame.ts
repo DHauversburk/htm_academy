@@ -31,8 +31,8 @@ export class MainGame extends Scene {
     preload() {
         // Use simple sprite that we know works
         this.load.spritesheet('sprite_technician', 'assets/sprite_technician_simple.png', {
-            frameWidth: 64,
-            frameHeight: 64
+            frameWidth: 32,
+            frameHeight: 32
         });
     }
 
