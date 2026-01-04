@@ -71,19 +71,20 @@ interface GameState {
     // Performance Tracking
     trackMetric: (metric: keyof PerformanceMetrics, value: number) => void;
     checkAchievements: () => void;
+    reset: () => void;
 }
 
-export const useGameStore = create<GameState>((set, get) => ({
+const initialState = {
     playerName: '',
     jobTitle: 'BMET I',
-    difficulty: 'easy',
-    authMode: 'guest',
+    difficulty: 'easy' as 'easy' | 'medium' | 'hard',
+    authMode: 'guest' as 'guest' | 'authenticated',
     avatarColor: 0xffffff,
     isSetupComplete: false,
-    workOrders: [],
-    activeOrderId: null,
+    workOrders: [] as WorkOrder[],
+    activeOrderId: null as string | null,
     budget: 1000,
-    inventory: {},
+    inventory: {} as Record<string, number>,
 
     // Initialize achievements from registry
     achievements: Object.fromEntries(
@@ -118,11 +119,17 @@ export const useGameStore = create<GameState>((set, get) => ({
         strength: 5, // Base strength
         speed: 200, // Base pixels per second
         xp: 0,
-        unlockedSkills: [],
+        unlockedSkills: [] as string[],
         currentXP: 0,
         maxXP: 1000
     },
-    container: 'hands',
+    container: 'hands' as 'hands' | 'fanny_pack' | 'backpack' | 'cart' | 'auto_cart',
+};
+
+export const useGameStore = create<GameState>((set, get) => ({
+    ...initialState,
+
+    reset: () => set(initialState),
 
     // Actions
     setPlayerName: (name) => set({ playerName: name }),
