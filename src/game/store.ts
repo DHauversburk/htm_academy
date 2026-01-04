@@ -436,3 +436,14 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
     }
 }));
+
+// Listen for auth changes to load profile
+supabase.auth.onAuthStateChange((event, session) => {
+    const { loadProfile, setAuthMode } = useGameStore.getState();
+    if (session) {
+        setAuthMode('authenticated');
+        loadProfile();
+    } else {
+        setAuthMode('guest');
+    }
+});
