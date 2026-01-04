@@ -139,7 +139,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
                             {/* Footer */}
                             <div className="p-6 border-t border-slate-800 text-xs text-slate-500 text-center">
-                                HTM Academy v0.1.7 • Made with ❤️
+                                HTM Academy v0.2.0 • Made with ❤️
                             </div>
                         </div>
                     </motion.div>
