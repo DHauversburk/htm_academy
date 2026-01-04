@@ -85,12 +85,34 @@ function App() {
 
       } catch (err) {
         console.error("Shift Generation Failed", err);
-        setToast({ message: "Failed to load shift. Using fallback.", type: 'error' });
-        // Ensure we remove the loading overlay even on failure
-        setIsSetupOpen(false);
+        setToast({ message: "AI Director failed. Using fallback layout.", type: 'error' });
 
-        // Still try to start the game with fallback data if possible (or just let the error toast show)
-        // Ideally we should have a fallback shift here, but for now just unblocking the UI is critical.
+        // Fallback: Generate a standard shift and start the game
+        const newOrders = GameDirector.generateShift(difficulty);
+        setWorkOrders(newOrders);
+
+        const fallbackShiftData = {
+            title: "Standard Shift",
+            summary: "The AI Director is offline. Proceed with standard operating procedures.",
+            mapConfig: {
+                width: 50,
+                height: 40,
+                rooms: [] // Let map manager use its default
+            },
+            events: newOrders, // <-- Correctly pass the generated orders
+        };
+
+        if (phaserRef.current?.scene) {
+          const game = phaserRef.current.game;
+          if (game) {
+            game.scene.stop('BenchScene');
+            game.scene.stop('StartScreen');
+            game.scene.start('MainGame', { shift: fallbackShiftData });
+          }
+        }
+
+        // Ensure we remove the loading overlay
+        setIsSetupOpen(false);
       }
     };
 
