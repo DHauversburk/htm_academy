@@ -13,12 +13,16 @@ interface Node {
     speed: number;
 }
 
+const createInitialNodes = (): Node[] => {
+    return [
+        { id: 1, status: 'pending', value: 0, target: Math.floor(Math.random() * 21) + 70, speed: 1.5 },
+        { id: 2, status: 'pending', value: 0, target: Math.floor(Math.random() * 21) + 70, speed: 2.0 },
+        { id: 3, status: 'pending', value: 0, target: Math.floor(Math.random() * 21) + 70, speed: 2.5 },
+    ];
+};
+
 export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationProps) {
-    const [nodes, setNodes] = useState<Node[]>([
-        { id: 1, status: 'pending', value: 0, target: 80, speed: 1.5 },
-        { id: 2, status: 'pending', value: 0, target: 75, speed: 2.0 },
-        { id: 3, status: 'pending', value: 0, target: 85, speed: 2.5 },
-    ]);
+    const [nodes, setNodes] = useState<Node[]>(createInitialNodes);
     const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
     const requestRef = useRef<number>(0);
 
@@ -47,6 +51,11 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
     }, [activeNodeId]);
 
     const handleNodeClick = (id: number) => {
+        // Prevent interaction if a node has failed and is awaiting reset
+        if (nodes.some(n => n.status === 'fail')) {
+            return;
+        }
+
         const node = nodes.find(n => n.id === id);
         if (!node) return;
 
@@ -56,20 +65,25 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
             setActiveNodeId(id);
         } else if (node.status === 'calibrating') {
             // Stop and Check
+            setActiveNodeId(null);
             const diff = Math.abs(node.value - node.target);
             const isSuccess = diff < 10; // 10% margin
 
-            setNodes(prev => prev.map(n => n.id === id ? { ...n, status: isSuccess ? 'success' : 'fail' } : n));
-            setActiveNodeId(null);
+            if (isSuccess) {
+                const newNodes = nodes.map(n => n.id === id ? { ...n, status: 'success' as const } : n);
+                setNodes(newNodes);
 
-            // Check if all complete
-            if (isSuccess && nodes.every(n => (n.id === id ? true : n.status === 'success'))) {
-                setTimeout(() => onSuccess(100), 500);
+                // Check if all are successful
+                if (newNodes.every(n => n.status === 'success')) {
+                    setTimeout(() => onSuccess(100), 500);
+                }
+            } else {
+                // On failure, mark the node and then reset everything
+                setNodes(prev => prev.map(n => n.id === id ? { ...n, status: 'fail' } : n));
+                setTimeout(() => {
+                    setNodes(createInitialNodes());
+                }, 1000);
             }
-        } else if (node.status === 'fail') {
-            // Retry
-            setNodes(prev => prev.map(n => n.id === id ? { ...n, status: 'calibrating', value: 0 } : n));
-            setActiveNodeId(id);
         }
     };
 
