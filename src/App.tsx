@@ -292,11 +292,11 @@ function App() {
       {/* Settings Panel */}
       <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
-      {/* Settings Button (Top Left) */}
+      {/* Settings Button (Top Right) */}
       {isSetupComplete && (
         <button
           onClick={() => setIsSettingsOpen(true)}
-          className="fixed top-4 left-4 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm p-3 rounded-lg border border-slate-600 transition-all z-50"
+          className="fixed top-4 right-4 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm p-3 rounded-lg border border-slate-600 transition-all z-50"
           title="Settings"
         >
           <span className="text-xl">⚙️</span>
