@@ -70,6 +70,7 @@ export class MainGame extends Scene {
         this.player.setBodySize(24, 24);
         this.player.setOffset(20, 32); // Lower body hitbox
         this.player.setCollideWorldBounds(true);
+        this.player.setDepth(1); // Ensure player is above the map layer
 
         // Collision with Walls
         this.physics.add.collider(this.player, layer);
