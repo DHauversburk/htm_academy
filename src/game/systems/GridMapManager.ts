@@ -47,8 +47,9 @@ export class GridMapManager {
 
         this.layer = this.map.createBlankLayer('Ground', this.tileset)!;
 
-        // Initialize with Walls
-        this.layer.fill(1); // 1 = Wall
+        // GID is 1-based, Texture Index is 0-based.
+        // Floor is Texture 0 (GID 1), Wall is Texture 1 (GID 2)
+        this.layer.fill(2); // Fill with Wall tiles (GID 2)
 
         // Initialize Grid Data (Rows = y, Cols = x)
         this.grid = [];
@@ -65,7 +66,7 @@ export class GridMapManager {
         // to prevent "tiny islands" or overlapping rooms.
         this.generateHospitalLayout(width, height);
 
-        this.map.setCollision(1);
+        this.map.setCollision(2); // Use GID 2 for walls
     }
 
 
@@ -100,12 +101,12 @@ export class GridMapManager {
     }
 
     private createRoom(id: string, x: number, y: number, w: number, h: number): Room {
-        // Dig out the floor (0)
+        // Dig out the floor (GID 1)
         for (let dy = 0; dy < h; dy++) {
             for (let dx = 0; dx < w; dx++) {
                 // Ensure bounds
                 if (x + dx < this.map.width && y + dy < this.map.height) {
-                    this.layer.putTileAt(0, x + dx, y + dy);
+                    this.layer.putTileAt(1, x + dx, y + dy); // Use GID 1 for floor
                     if (this.grid[y + dy]) this.grid[y + dy][x + dx] = 0;
                 }
             }
@@ -129,7 +130,7 @@ export class GridMapManager {
 
         const dig = (gx: number, gy: number) => {
             if (gx >= 0 && gx < this.map.width && gy >= 0 && gy < this.map.height) {
-                this.layer.putTileAt(0, gx, gy);
+                this.layer.putTileAt(1, gx, gy); // Use GID 1 for floor
                 if (this.grid[gy]) this.grid[gy][gx] = 0;
             }
         };
@@ -215,8 +216,8 @@ export class GridMapManager {
             const y = Math.floor(Math.random() * this.map.height);
 
             const tile = this.layer.getTileAt(x, y);
-            // Tile index 0 is Floor
-            if (tile && tile.index === 0) {
+            // Tile index 1 is Floor GID
+            if (tile && tile.index === 1) {
                 return this.tileToWorld(x, y);
             }
             attempts++;
