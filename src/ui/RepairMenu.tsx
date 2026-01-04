@@ -23,9 +23,19 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showMinigame, setShowMinigame] = useState(false);
 
-    const handleStartRepair = () => {
+    const handleSubmit = () => {
         if (!selectedAction) return;
-        setShowMinigame(true);
+
+        if (selectedAction === 'calibration') {
+            setShowMinigame(true);
+        } else {
+            // For non-calibration tasks, complete immediately
+            setIsSubmitting(true);
+            setTimeout(() => {
+                onComplete(selectedAction!, notes);
+                setIsSubmitting(false);
+            }, 500);
+        }
     };
 
     const handleMinigameSuccess = (_score: number) => {
@@ -106,7 +116,7 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
                         Cancel
                     </button>
                     <button
-                        onClick={handleStartRepair}
+                        onClick={handleSubmit}
                         disabled={!selectedAction || isSubmitting}
                         className={clsx(
                             "px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition-all flex items-center space-x-2",
@@ -115,7 +125,11 @@ export const RepairMenu = ({ onClose, onComplete }: RepairMenuProps) => {
                                 : "bg-blue-500 hover:bg-blue-400 text-white hover:shadow-blue-500/25 active:scale-95"
                         )}
                     >
-                        <span>Start Calibration</span>
+                        <span>
+                            {selectedAction === 'calibration'
+                                ? 'Start Calibration'
+                                : 'Complete Repair'}
+                        </span>
                         <span>🔧</span>
                     </button>
                 </div>
