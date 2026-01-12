@@ -17,6 +17,19 @@ export class AIDirector {
 
         if (!shiftData) throw new Error("Failed to generate shift data");
 
+        // --- VALIDATION ---
+        // If the AI provides a map config, ensure it's valid, otherwise fallback.
+        if (shiftData.mapConfig) {
+            if (shiftData.mapConfig.width < 20 || shiftData.mapConfig.height < 20) {
+                console.warn("AI returned an invalid map size. Falling back to default.");
+                shiftData.mapConfig.width = 64;
+                shiftData.mapConfig.height = 64;
+            }
+        } else {
+            shiftData.mapConfig = { width: 64, height: 64, rooms: [] };
+        }
+
+
         this.currentShift = shiftData;
         return shiftData;
     }
