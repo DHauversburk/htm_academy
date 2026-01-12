@@ -22,6 +22,14 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
     const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
     const requestRef = useRef<number>(0);
 
+    // Initialize with random targets
+    useEffect(() => {
+        setNodes(prev => prev.map(node => ({
+            ...node,
+            target: Math.floor(Math.random() * 21) + 70, // Random target between 70-90
+        })));
+    }, []);
+
     // Game Loop
     useEffect(() => {
         const animate = () => {
@@ -57,19 +65,30 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
         } else if (node.status === 'calibrating') {
             // Stop and Check
             const diff = Math.abs(node.value - node.target);
-            const isSuccess = diff < 10; // 10% margin
+            const isSuccess = diff < 10; // 10% margin of the bar
 
-            setNodes(prev => prev.map(n => n.id === id ? { ...n, status: isSuccess ? 'success' : 'fail' } : n));
-            setActiveNodeId(null);
+            setActiveNodeId(null); // Stop animation immediately
 
-            // Check if all complete
-            if (isSuccess && nodes.every(n => (n.id === id ? true : n.status === 'success'))) {
-                setTimeout(() => onSuccess(100), 500);
+            if (isSuccess) {
+                setNodes(prev => {
+                    const newNodes = prev.map(n => n.id === id ? { ...n, status: 'success' } : n);
+                    if (newNodes.every(n => n.status === 'success')) {
+                        setTimeout(() => onSuccess(100), 500);
+                    }
+                    return newNodes;
+                });
+            } else {
+                // Flash fail state, then reset ALL nodes
+                setNodes(prev => prev.map(n => n.id === id ? { ...n, status: 'fail' } : { ...n, status: 'pending' }));
+                setTimeout(() => {
+                    setNodes(prev => prev.map(n => ({ ...n, status: 'pending', value: 0 })));
+                }, 500);
             }
         } else if (node.status === 'fail') {
-            // Retry
-            setNodes(prev => prev.map(n => n.id === id ? { ...n, status: 'calibrating', value: 0 } : n));
-            setActiveNodeId(id);
+            // Allow retrying immediately by clicking a failed node
+            // This will reset all nodes to pending
+            setNodes(prev => prev.map(n => ({ ...n, status: 'pending', value: 0 })));
+            setActiveNodeId(null);
         }
     };
 
@@ -98,6 +117,7 @@ export function CircuitCalibration({ onSuccess, onCancel }: CircuitCalibrationPr
                         <div
                             className="h-12 bg-slate-800 rounded-xl overflow-hidden cursor-pointer relative border-2 border-slate-700 active:scale-95 transition-transform"
                             onClick={() => handleNodeClick(node.id)}
+                            data-testid={`node-${node.id}`}
                         >
                             {/* Fill */}
                             <div
