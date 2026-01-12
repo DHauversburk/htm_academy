@@ -3,16 +3,52 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../game/store';
 import { EventBus } from '../game/EventBus';
 import clsx from 'clsx';
+import { supabase } from '../lib/supabase';
 
 export const ProfileSetup = () => {
     const { setPlayerName, setDifficulty, completeSetup, setAuthMode, setJobTitle } = useGameStore();
-    const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [step, setStep] = useState<1 | 2 | 3 | 'auth'>(1);
     const [name, setName] = useState('');
     const [role, setRole] = useState<'intern' | 'tech' | 'manager'>('intern');
+
+    // Auth Form State
+    const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+
 
     const handleGuestStart = () => {
         setAuthMode('guest');
         setStep(2);
+    };
+
+    const handleCloudClick = () => {
+        setStep('auth');
+    };
+
+    const handleAuthSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        const authFunction = authView === 'login'
+            ? supabase.auth.signInWithPassword
+            : supabase.auth.signUp;
+
+        const { error } = await authFunction({ email, password });
+
+        if (error) {
+            setError(error.message);
+        } else if (authView === 'login') {
+            // onAuthStateChange handles loading the profile.
+            // We need to complete the setup to close this screen.
+            completeSetup();
+            EventBus.emit('tutorial-complete');
+        } else {
+            // New user signed up. Proceed to profile creation.
+            setAuthMode('authenticated');
+            setStep(2);
+        }
     };
 
     const handleNameSubmit = (e: React.FormEvent) => {
@@ -71,13 +107,64 @@ export const ProfileSetup = () => {
                                     <span>👤</span> Guest Access
                                 </button>
                                 <button
-                                    disabled
-                                    className="w-full py-4 px-6 bg-slate-800 text-slate-500 rounded-lg font-bold border border-slate-700 cursor-not-allowed flex items-center justify-center gap-3"
+                                    onClick={handleCloudClick}
+                                    className="w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold border border-slate-700 transition-colors flex items-center justify-center gap-3"
                                 >
-                                    <span>☁️</span> Cloud Login (Coming Soon)
+                                    <span>☁️</span> Cloud Save & Sync
                                 </button>
                             </motion.div>
                         )}
+
+                        {step === 'auth' && (
+                            <motion.div
+                                key="stepAuth"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                            >
+                                <div className="flex justify-center mb-4 border border-slate-800 rounded-lg p-1">
+                                    <button onClick={() => setAuthView('login')} className={clsx("flex-1 px-4 py-2 text-sm font-bold rounded-md transition-colors", authView === 'login' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800')}>Login</button>
+                                    <button onClick={() => setAuthView('signup')} className={clsx("flex-1 px-4 py-2 text-sm font-bold rounded-md transition-colors", authView === 'signup' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800')}>Sign Up</button>
+                                </div>
+
+                                <form onSubmit={handleAuthSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs uppercase font-bold text-slate-400 mb-2">Email</label>
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="tech@hospital.com"
+                                            className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs uppercase font-bold text-slate-400 mb-2">Password</label>
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                            className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    {error && <p className="text-xs text-red-400 text-center">{error}</p>}
+                                    <button
+                                        type="submit"
+                                        disabled={!email || password.length < 6}
+                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 rounded-lg font-bold transition-all mt-4"
+                                    >
+                                        {authView === 'login' ? 'Login' : 'Create Account'} &rarr;
+                                    </button>
+                                </form>
+                                <button onClick={() => setStep(1)} className="text-center w-full mt-4 text-xs text-slate-500 hover:text-slate-300">
+                                    &larr; Back
+                                </button>
+                            </motion.div>
+                        )}
+
 
                         {step === 2 && (
                             <motion.div
