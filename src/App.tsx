@@ -170,6 +170,17 @@ function App() {
       setIsCareerDashboardOpen(true);
     };
 
+    const handleResetGame = () => {
+      useGameStore.getState().reset();
+      if (phaserRef.current?.scene) {
+        const game = phaserRef.current.game;
+        if (game) {
+          game.scene.stop('MainGame');
+          game.scene.start('MainGame');
+        }
+      }
+    };
+
     EventBus.on('open-work-order', handleOpenWO);
     EventBus.on('open-workbench', handleOpenWorkbench);
     EventBus.on('start-tutorial', handleStartTutorial);
@@ -180,6 +191,7 @@ function App() {
     EventBus.on('show-toast', handleShowToast);
     EventBus.on('open-supply-cabinet', handleOpenSupply);
     EventBus.on('open-career-dashboard', handleOpenCareerDashboard);
+    EventBus.on('reset-game', handleResetGame);
 
     return () => {
       EventBus.removeListener('open-work-order', handleOpenWO);
@@ -191,6 +203,7 @@ function App() {
       EventBus.removeListener('open-repair-menu', handleOpenRepairMenu);
       EventBus.removeListener('show-toast', handleShowToast);
       EventBus.removeListener('open-supply-cabinet', handleOpenSupply);
+      EventBus.removeListener('reset-game', handleResetGame);
     };
   }, [difficulty, setWorkOrders, setActiveOrder]);
 
