@@ -236,8 +236,8 @@ export class MainGame extends Scene {
 
             body.setVelocity(velocityX, velocityY);
 
-            // Rotate sprite to face direction (subtract 90deg because sprite faces up by default)
-            this.player.setRotation(angle - Math.PI / 2);
+            // Rotate sprite to face direction (add 90deg because sprite faces up by default)
+            this.player.setRotation(angle + Math.PI / 2);
         } else {
             body.setVelocity(0, 0);
         }
