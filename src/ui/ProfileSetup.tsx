@@ -9,6 +9,7 @@ export const ProfileSetup = () => {
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [name, setName] = useState('');
     const [role, setRole] = useState<'intern' | 'tech' | 'manager'>('intern');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleGuestStart = () => {
         setAuthMode('guest');
@@ -24,6 +25,7 @@ export const ProfileSetup = () => {
     };
 
     const handleFinalize = () => {
+        setIsLoading(true);
         setDifficulty(role === 'intern' ? 'easy' : role === 'manager' ? 'hard' : 'medium');
         setJobTitle(role === 'intern' ? 'BMET I' : role === 'manager' ? 'BMET III' : 'BMET II');
         completeSetup();
@@ -163,9 +165,10 @@ export const ProfileSetup = () => {
 
                                 <button
                                     onClick={handleFinalize}
-                                    className="w-full py-4 mt-6 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white font-bold transition-all shadow-lg hover:shadow-emerald-500/20 animate-pulse"
+                                    disabled={isLoading}
+                                    className="w-full py-4 mt-6 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white font-bold transition-all shadow-lg hover:shadow-emerald-500/20 animate-pulse disabled:animate-none disabled:bg-slate-700"
                                 >
-                                    INITIALIZE SHIFT
+                                    {isLoading ? 'INITIALIZING...' : 'INITIALIZE SHIFT'}
                                 </button>
                             </motion.div>
                         )}
