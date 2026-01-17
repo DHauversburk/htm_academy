@@ -35,47 +35,6 @@ export class MainGame extends Scene {
     preload() {
         // Generate a simple sprite procedurally instead of loading an image
         // This guarantees it will work
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private shiftData: any = null; // Stored shift config
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    init(data: any) {
-        this.shiftData = data?.shift || null;
-        console.log("MainGame Init with Shift Data:", this.shiftData);
-    }
-
-    create() {
-        // Background (Slate 950)
-        this.cameras.main.setBackgroundColor('#020617');
-
-        // Expose for Debugging
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).game = this.game;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).mainScene = this;
-
-        // 1. Map Generation
-        this.mapManager = new GridMapManager(this);
-        const mapConfig = this.shiftData?.mapConfig || { width: 64, height: 64 };
-
-        try {
-            this.mapManager.createProceduralMap(mapConfig);
-            console.log("Map Generated Successfully");
-        } catch (e) {
-            console.error("Map Generation Failed:", e);
-        }
-
-        const layer = this.mapManager.getLayer();
-
-        // 2. Pathfinding Init
-        this.pathfinding = new PathfindingSystem();
-        this.pathfinding.setGrid(this.mapManager.getCollisionGrid());
-
-        // 3. Create Professional Character Sprite
-        const spawn = this.mapManager.getSpawnPoint();
-
         const graphics = this.add.graphics();
 
         // Shadow
@@ -122,6 +81,57 @@ export class MainGame extends Scene {
 
         graphics.generateTexture('player', 32, 32);
         graphics.destroy();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private shiftData: any = null; // Stored shift config
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    init(data: any) {
+        this.shiftData = data?.shift || null;
+        console.log("MainGame Init with Shift Data:", this.shiftData);
+    }
+
+    create() {
+        // Background (Slate 950)
+        this.cameras.main.setBackgroundColor('#020617');
+
+        // Expose for Debugging
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).game = this.game;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).mainScene = this;
+
+        // 1. Map Generation
+        this.mapManager = new GridMapManager(this);
+        const mapConfig = this.shiftData?.mapConfig || { width: 64, height: 64 };
+
+        try {
+            this.mapManager.createProceduralMap(mapConfig);
+            console.log("Map Generated Successfully");
+        } catch (e) {
+            console.error("Map Generation Failed:", e);
+        }
+
+        const layer = this.mapManager.getLayer();
+        if (!layer) {
+            console.error("Map layer could not be created. Aborting scene create.");
+            return;
+        }
+
+        const mapWidth = this.mapManager.getMapPixelWidth();
+        const mapHeight = this.mapManager.getMapPixelHeight();
+
+        // Set World Bounds
+        this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
+
+
+        // 2. Pathfinding Init
+        this.pathfinding = new PathfindingSystem();
+        this.pathfinding.setGrid(this.mapManager.getCollisionGrid());
+
+        // 3. Create Professional Character Sprite
+        const spawn = this.mapManager.getSpawnPoint();
 
         this.player = this.physics.add.sprite(spawn.x, spawn.y, 'player');
         this.player.setScale(1.5);
@@ -137,6 +147,7 @@ export class MainGame extends Scene {
         this.player.setTint(avatarColor);
 
         // 4. Camera
+        this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         const targetViewWidth = 16 * 32;
         const zoom = this.scale.width / targetViewWidth;
