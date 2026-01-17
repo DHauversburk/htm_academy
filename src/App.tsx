@@ -80,7 +80,7 @@ function App() {
       }
     };
 
-    const handleTutorialComplete = async () => {
+    const startNewShift = async () => {
       // 1. Generate the Shift Context (AI Director)
       // Show loading toast?
       setToast({ message: "AIDirector: Generating Hospital Layout...", type: 'success' }); // Info type hacked as success for now
@@ -126,6 +126,11 @@ function App() {
         // Ensure we remove the loading overlay even on failure
         setIsSetupOpen(false);
       }
+    };
+
+    const handleTutorialComplete = () => {
+      // Tutorial is done, so start a normal shift.
+      EventBus.emit('start-new-shift');
     };
 
     const handleUiClosed = () => {
@@ -174,6 +179,7 @@ function App() {
     EventBus.on('open-workbench', handleOpenWorkbench);
     EventBus.on('start-tutorial', handleStartTutorial);
     EventBus.on('tutorial-complete', handleTutorialComplete);
+    EventBus.on('start-new-shift', startNewShift);
     EventBus.on('ui-closed', handleUiClosed);
     EventBus.on('start-repair', handleStartRepair);
     EventBus.on('open-repair-menu', handleOpenRepairMenu);
@@ -186,6 +192,7 @@ function App() {
       EventBus.removeListener('open-workbench', handleOpenWorkbench);
       EventBus.removeListener('start-tutorial', handleStartTutorial);
       EventBus.removeListener('tutorial-complete', handleTutorialComplete);
+      EventBus.removeListener('start-new-shift', startNewShift);
       EventBus.removeListener('ui-closed', handleUiClosed);
       EventBus.removeListener('start-repair', handleStartRepair);
       EventBus.removeListener('open-repair-menu', handleOpenRepairMenu);

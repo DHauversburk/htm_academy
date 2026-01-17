@@ -28,8 +28,8 @@ export const ProfileSetup = () => {
         setJobTitle(role === 'intern' ? 'BMET I' : role === 'manager' ? 'BMET III' : 'BMET II');
         completeSetup();
 
-        // Trigger the tutorial completion sequence (which starts generation)
-        EventBus.emit('tutorial-complete');
+        // This will now trigger the unified shift generation logic in App.tsx
+        EventBus.emit('start-new-shift');
     };
 
     return (
