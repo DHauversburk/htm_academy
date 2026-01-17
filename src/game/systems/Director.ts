@@ -2,7 +2,7 @@ import type { WorkOrder, Priority } from '../types';
 
 // --- MOCK DATABASE ---
 const MOCK_DEVICES = {
-    'pump_alaris': { id: 'pump_alaris', name: 'Alaris 8100', type: 'Infusion Pump', imageKey: 'device_pump' },
+    'PUMP01': { id: 'PUMP01', name: 'Alaris 8100', type: 'Infusion Pump', imageKey: 'device_pump' },
     'defib_zoll': { id: 'defib_zoll', name: 'Zoll R Series', type: 'Defibrillator', imageKey: 'device_defib' },
     'monitor_philips': { id: 'monitor_philips', name: 'IntelliVue MX400', type: 'Patient Monitor', imageKey: 'device_monitor' },
     'ekg_ge': { id: 'ekg_ge', name: 'MAC 5500', type: 'EKG Machine', imageKey: 'device_ekg' },
