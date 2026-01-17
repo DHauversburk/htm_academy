@@ -9,7 +9,7 @@ export class MinimapSystem {
     private playerDot!: Phaser.GameObjects.Graphics;
 
     private readonly MINIMAP_SIZE = 120;
-    private readonly MINIMAP_SCALE = 2; // How many tiles per pixel
+    private minimapScale = 1;
 
     constructor(scene: Scene, mapManager: GridMapManager) {
         this.scene = scene;
@@ -61,18 +61,19 @@ export class MinimapSystem {
 
     private renderMap() {
         const grid = this.mapManager.getCollisionGrid();
-        const tileSize = this.mapManager.TILE_SIZE;
+        if (!grid || grid.length === 0) return;
+
+        // Calculate scale to fit grid into minimap size
+        const mapWidth = grid[0].length;
+        const mapHeight = grid.length;
+        this.minimapScale = this.MINIMAP_SIZE / Math.max(mapWidth, mapHeight);
 
         this.minimapGraphics.clear();
 
-        for (let y = 0; y < grid.length; y++) {
-            for (let x = 0; x < grid[y].length; x++) {
-                const worldX = x * tileSize;
-                const worldY = y * tileSize;
-
-                // Convert to minimap coordinates
-                const minimapX = (worldX / tileSize) / this.MINIMAP_SCALE;
-                const minimapY = (worldY / tileSize) / this.MINIMAP_SCALE;
+        for (let y = 0; y < mapHeight; y++) {
+            for (let x = 0; x < mapWidth; x++) {
+                const minimapX = Math.floor(x * this.minimapScale);
+                const minimapY = Math.floor(y * this.minimapScale);
 
                 if (grid[y][x] === 0) {
                     // Floor - light color
@@ -82,22 +83,24 @@ export class MinimapSystem {
                     this.minimapGraphics.fillStyle(0x334155, 1);
                 }
 
+                // Ensure integers for pixel-perfect drawing
                 this.minimapGraphics.fillRect(
                     minimapX,
                     minimapY,
-                    1 / this.MINIMAP_SCALE,
-                    1 / this.MINIMAP_SCALE
+                    Math.ceil(this.minimapScale),
+                    Math.ceil(this.minimapScale)
                 );
             }
         }
     }
 
     update(playerX: number, playerY: number) {
-        const tileSize = this.mapManager.TILE_SIZE;
+        // Convert player world position to tile position
+        const tile = this.mapManager.worldToTile(playerX, playerY);
 
-        // Convert player world position to minimap position
-        const minimapX = (playerX / tileSize) / this.MINIMAP_SCALE;
-        const minimapY = (playerY / tileSize) / this.MINIMAP_SCALE;
+        // Convert tile position to minimap position
+        const minimapX = Math.floor(tile.x * this.minimapScale);
+        const minimapY = Math.floor(tile.y * this.minimapScale);
 
         // Draw player dot
         this.playerDot.clear();
